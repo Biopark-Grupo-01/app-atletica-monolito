@@ -1,21 +1,42 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
-    "declaration": true,
-    "removeComments": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "allowSyntheticDefaultImports": true,
+    // Configurações de ECMAScript
     "target": "ES2023",
-    "sourceMap": true,
-    "outDir": "./dist",
+    "module": "commonjs",
+    "moduleResolution": "node",
+
+    // Configurações de caminhos e saída
     "baseUrl": "./",
-    "incremental": true,
-    "skipLibCheck": true,
+    "outDir": "./dist",
+    "paths": {
+      "@app/*": ["src/*"],
+      "@infrastructure/*": ["src/infrastructure/*"],
+      "@contexts/*": ["src/contexts/*"]
+    },
+
+    // Configurações de decoradores
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+
+    // Configurações de tipo e verificação
     "strictNullChecks": true,
-    "forceConsistentCasingInFileNames": true,
     "noImplicitAny": false,
     "strictBindCallApply": false,
-    "noFallthroughCasesInSwitch": false
-  }
+    "noFallthroughCasesInSwitch": false,
+    "forceConsistentCasingInFileNames": true,
+
+    // Configurações de interoperabilidade
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+
+    // Configurações de compilação
+    "declaration": true,
+    "sourceMap": true,
+    "removeComments": true,
+    "incremental": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true
+  },
+  "include": ["src/**/*", "test/**/*"],
+  "exclude": ["node_modules", "dist"]
 }
