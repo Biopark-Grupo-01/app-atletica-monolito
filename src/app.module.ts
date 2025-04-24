@@ -5,11 +5,22 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserController } from './presentation/controllers/user.controller';
 import { UserService } from './application/services/user.service';
+import { CargoController } from './presentation/controllers/cargo.controller';
+import { CargoService } from './application/services/cargo.service';
+import { PrismaCargoRepository } from './infrastructure/repositories/prisma-cargo.repository';
+import { CargoRepository } from './domain/repositories/cargo-repository';
 
 @Module({
   imports: [],
-  controllers: [AppController, UserController],
-  providers: [AppService, UserService],
-
+  controllers: [AppController, UserController, CargoController],
+  providers: [
+    AppService,
+    UserService,
+    CargoService,
+    {
+      provide: CargoRepository,
+      useClass: PrismaCargoRepository,
+    },
+  ],
 })
 export class AppModule {}
