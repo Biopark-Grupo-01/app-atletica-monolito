@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaClient } from '../../../generated/prisma';
+import { PrismaClient } from '@prisma/client';
 import { Cargo } from '../../domain/entities/cargo';
 import { CargoRepository } from '../../domain/repositories/cargo-repository';
 
@@ -21,7 +21,7 @@ export class PrismaCargoRepository implements CargoRepository {
     return new Cargo(
       created.id,
       created.nome,
-      created.descricao,
+      created.descricao ?? undefined,
       created.createdAt,
       created.updatedAt,
     );
@@ -34,7 +34,7 @@ export class PrismaCargoRepository implements CargoRepository {
         new Cargo(
           cargo.id,
           cargo.nome,
-          cargo.descricao,
+          cargo.descricao ?? undefined,
           cargo.createdAt,
           cargo.updatedAt,
         ),
@@ -53,7 +53,7 @@ export class PrismaCargoRepository implements CargoRepository {
     return new Cargo(
       cargo.id,
       cargo.nome,
-      cargo.descricao,
+      cargo.descricao ?? undefined,
       cargo.createdAt,
       cargo.updatedAt,
     );
@@ -71,7 +71,7 @@ export class PrismaCargoRepository implements CargoRepository {
     return new Cargo(
       updated.id,
       updated.nome,
-      updated.descricao,
+      updated.descricao ?? undefined,
       updated.createdAt,
       updated.updatedAt,
     );
