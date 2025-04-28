@@ -25,17 +25,17 @@
     "@nestjs/core": "11.1.0",
     "@nestjs/microservices": "11.1.0",
     "@nestjs/platform-express": "11.1.0",
-    "@prisma/client": "^6.6.0",
     "@nestjs/typeorm": "11.0.0",
+    "@prisma/client": "6.6.0",
     "app-atletica-monolito": "file:",
-    "prisma": "^6.6.0",
     "class-transformer": "0.5.1",
     "class-validator": "0.14.1",
-    "pg": "8.15.5",
+    "pg": "8.15.6",
+    "prisma": "6.6.0",
     "reflect-metadata": "0.2.2",
     "rxjs": "7.8.2",
     "typeorm": "0.3.22",
-    "uuid": "^11.1.0"
+    "uuid": "11.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "3.3.1",
@@ -47,9 +47,9 @@
     "@swc/core": "1.11.22",
     "@types/express": "5.0.1",
     "@types/jest": "29.5.14",
-    "@types/node": "22.14.1",
+    "@types/node": "22.15.3",
     "@types/supertest": "6.0.3",
-    "@types/uuid": "^10.0.0",
+    "@types/uuid": "10.0.0",
     "eslint": "9.25.1",
     "eslint-config-prettier": "10.1.2",
     "eslint-plugin-prettier": "5.2.6",
@@ -63,7 +63,7 @@
     "ts-node": "10.9.2",
     "tsconfig-paths": "4.2.0",
     "typescript": "5.8.3",
-    "typescript-eslint": "8.31.0"
+    "typescript-eslint": "8.31.1"
   },
   "jest": {
     "moduleFileExtensions": [
