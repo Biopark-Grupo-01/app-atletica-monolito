@@ -1,64 +1,57 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaClient } from '../../../generated/prisma';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { UserResponseDto } from '../dtos/user-response.dto';
+import { IUserRepository } from '../../domain/repositories/user-repository';
+import { User } from '../../domain/entities/user';
+import { Cargo } from '../../domain/entities/cargo';
 
 @Injectable()
 export class UserService {
-  private prisma: PrismaClient;
-
-  constructor() {
-    this.prisma = new PrismaClient();
-  }
+  constructor(
+    @Inject('UserRepository')
+    private readonly userRepository: IUserRepository,
+    @Inject('CargoRepository')
+    private readonly cargoRepository: any, // Use o tipo apropriado
+  ) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
-    // Check if the cargo exists
-    const cargo = await this.prisma.cargo.findUnique({
-      where: { id: createUserDto.cargoId },
-    });
-
+    // Buscar o cargo pelo ID
+    const cargo = await this.cargoRepository.findOne(createUserDto.cargoId);
     if (!cargo) {
       throw new NotFoundException(
         `Cargo with ID ${createUserDto.cargoId} not found`,
       );
     }
 
-    const user = await this.prisma.user.create({
-      data: {
-        name: createUserDto.name,
-        registrationNumber: createUserDto.registrationNumber,
-        cpf: createUserDto.cpf,
-        email: createUserDto.email,
-        password: createUserDto.password, // Consider encrypting the password
-        phone: createUserDto.phone,
-        cargo: {
-          connect: { id: createUserDto.cargoId },
-        },
-      },
-      include: {
-        cargo: true,
-      },
+    // Criar a entidade de usuário
+    const cargoEntity = new Cargo({
+      name: cargo.nome,
+      description: cargo.descricao,
     });
 
-    return this.toResponseDto(user);
+    const user = new User({
+      name: createUserDto.name,
+      registrationNumber: createUserDto.registrationNumber,
+      cpf: createUserDto.cpf,
+      email: createUserDto.email,
+      password: createUserDto.password, // Considerar criptografar a senha
+      phone: createUserDto.phone,
+      cargo: cargoEntity,
+    });
+
+    // Salvar o usuário
+    const createdUser = await this.userRepository.create(user);
+
+    return this.toResponseDto(createdUser);
   }
 
   async findAll(): Promise<UserResponseDto[]> {
-    const users = await this.prisma.user.findMany({
-      include: {
-        cargo: true,
-      },
-    });
-    return users.map(this.toResponseDto);
+    const users = await this.userRepository.findAll();
+    return users.map((user) => this.toResponseDto(user));
   }
 
   async findOne(id: string): Promise<UserResponseDto | null> {
-    const user = await this.prisma.user.findUnique({
-      where: { id },
-      include: {
-        cargo: true,
-      },
-    });
+    const user = await this.userRepository.findById(id);
 
     if (!user) {
       return null;
@@ -70,61 +63,78 @@ export class UserService {
   async update(
     id: string,
     updateData: Partial<CreateUserDto>,
-  ): Promise<UserResponseDto> {
-    // Handle cargo relationship if cargoId is provided
-    const data: any = { ...updateData };
+  ): Promise<UserResponseDto | null> {
+    // Buscar o usuário existente
+    const existingUser = await this.userRepository.findById(id);
+    if (!existingUser) {
+      return null;
+    }
 
+    // Atualizar campos básicos
+    if (updateData.name) {
+      existingUser.setName(updateData.name);
+    }
+    if (updateData.registrationNumber) {
+      existingUser.setRegistrationNumber(updateData.registrationNumber);
+    }
+    if (updateData.cpf) {
+      existingUser.setCpf(updateData.cpf);
+    }
+    if (updateData.email) {
+      existingUser.setEmail(updateData.email);
+    }
+    if (updateData.password) {
+      existingUser.setPassword(updateData.password);
+    }
+    if (updateData.phone) {
+      existingUser.setPhone(updateData.phone);
+    }
+
+    // Atualizar cargo se necessário
     if (updateData.cargoId) {
-      // Check if the cargo exists
-      const cargo = await this.prisma.cargo.findUnique({
-        where: { id: updateData.cargoId },
-      });
-
-      if (!cargo) {
+      const newCargo = await this.cargoRepository.findOne(updateData.cargoId);
+      if (!newCargo) {
         throw new NotFoundException(
           `Cargo with ID ${updateData.cargoId} not found`,
         );
       }
 
-      // Setup cargo relationship
-      data.cargo = {
-        connect: { id: updateData.cargoId },
-      };
-      delete data.cargoId;
+      const cargoEntity = new Cargo({
+        name: newCargo.nome,
+        description: newCargo.descricao,
+      });
+
+      existingUser.setCargo(cargoEntity);
     }
 
-    const user = await this.prisma.user.update({
-      where: { id },
-      data,
-      include: {
-        cargo: true,
-      },
-    });
-
-    return this.toResponseDto(user);
+    // Salvar as alterações
+    const updatedUser = await this.userRepository.update(existingUser);
+    return this.toResponseDto(updatedUser);
   }
 
   async delete(id: string): Promise<void> {
-    await this.prisma.user.delete({
-      where: { id },
-    });
+    await this.userRepository.delete(id);
   }
 
-  private toResponseDto(user: any): UserResponseDto {
+  private toResponseDto(user: User): UserResponseDto {
+    const cargo = user.getCargo();
+
     return {
-      id: user.id,
-      name: user.name,
-      registrationNumber: user.registrationNumber,
-      cpf: user.cpf,
-      email: user.email,
-      phone: user.phone,
+      id: user.getId(),
+      name: user.getName(),
+      registrationNumber: user.getRegistrationNumber(),
+      cpf: user.getCpf(),
+      email: user.getEmail(),
+      phone: user.getPhone(),
       cargo: {
-        id: user.cargo.id,
-        name: user.cargo.name,
-        description: user.cargo.description,
+        id: cargo.getId(),
+        nome: cargo.getName(),
+        descricao: cargo.getDescription(),
+        createdAt: cargo.getCreatedAt(),
+        updatedAt: cargo.getUpdatedAt(),
       },
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
+      createdAt: user.getCreatedAt(),
+      updatedAt: user.getUpdatedAt(),
     };
   }
 }

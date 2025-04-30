@@ -9,6 +9,7 @@ import { UserService } from './application/services/user.service';
 import { CargoService } from './application/services/cargo.service';
 
 import { PrismaCargoRepository } from './infrastructure/repositories/prisma-cargo.repository';
+import { PrismaUserRepository } from './infrastructure/repositories/prisma-user.repository';
 
 @Module({
   imports: [ConfigModule, DatabaseModule],
@@ -19,6 +20,10 @@ import { PrismaCargoRepository } from './infrastructure/repositories/prisma-carg
     {
       provide: 'CargoRepository',
       useClass: PrismaCargoRepository,
+    },
+    {
+      provide: 'UserRepository',
+      useClass: PrismaUserRepository,
     },
   ],
 })

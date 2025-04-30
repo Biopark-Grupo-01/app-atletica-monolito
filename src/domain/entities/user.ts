@@ -57,6 +57,10 @@ export class User {
     return this.email;
   }
 
+  public getPassword(): string {
+    return this.password;
+  }
+
   public getPhone(): string {
     return this.phone;
   }
