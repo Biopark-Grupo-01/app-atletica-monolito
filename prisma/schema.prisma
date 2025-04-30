@@ -15,18 +15,24 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  name      String
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                String   @id @default(uuid())
+  name              String
+  registrationNumber String
+  cpf               String   @unique
+  email             String   @unique
+  password          String
+  phone             String
+  cargoId           String
+  cargo             Cargo    @relation(fields: [cargoId], references: [id])
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 model Cargo {
   id          String   @id @default(uuid())
-  nome        String
-  descricao   String?
+  name        String
+  description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  users       User[]
 }
