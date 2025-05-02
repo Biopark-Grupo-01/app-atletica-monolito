@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: atletica-app
+    restart: always
+    ports:
+      - '${PORT:-3000}:3000'
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+    environment:
+      - DATABASE_URL=postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME}
+    networks:
+      - atletica-network
+    command: >
+      sh -c "npx prisma migrate deploy && npm run start:prod"
+
+  postgres:
+    image: postgres:15
+    container_name: atletica-postgres
+    restart: always
+    ports:
+      - '${DATABASE_PORT:-5432}:5432'
+    environment:
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_DB=${DATABASE_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - atletica-network
+
+networks:
+  atletica-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

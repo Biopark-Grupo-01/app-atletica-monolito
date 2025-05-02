@@ -10,8 +10,8 @@ export class CargoService {
 
   async create(createCargoDto: CreateCargoDto): Promise<CargoResponseDto> {
     const cargo = await this.cargoRepository.create({
-      nome: createCargoDto.nome,
-      descricao: createCargoDto.descricao,
+      name: createCargoDto.nome,
+      description: createCargoDto.descricao,
     });
 
     return this.toResponseDto(cargo);
@@ -36,7 +36,10 @@ export class CargoService {
     id: string,
     updateData: Partial<CreateCargoDto>,
   ): Promise<CargoResponseDto> {
-    const cargo = await this.cargoRepository.update(id, updateData);
+    const cargo = await this.cargoRepository.update(id, {
+      name: updateData.nome,
+      description: updateData.descricao,
+    });
     return this.toResponseDto(cargo);
   }
 
@@ -46,11 +49,11 @@ export class CargoService {
 
   private toResponseDto(cargo: Cargo): CargoResponseDto {
     return {
-      id: cargo.id,
-      nome: cargo.nome,
-      descricao: cargo.descricao,
-      createdAt: cargo.createdAt,
-      updatedAt: cargo.updatedAt,
+      id: cargo.getId(),
+      nome: cargo.getName(),
+      descricao: cargo.getDescription(),
+      createdAt: cargo.getCreatedAt(),
+      updatedAt: cargo.getUpdatedAt(),
     };
   }
 }

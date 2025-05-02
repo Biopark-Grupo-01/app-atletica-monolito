@@ -11,33 +11,28 @@ export class PrismaCargoRepository implements CargoRepository {
     this.prisma = new PrismaClient();
   }
 
-  async create(
-    cargo: Omit<Cargo, 'id' | 'createdAt' | 'updatedAt'>,
-  ): Promise<Cargo> {
+  async create(cargo: { name: string; description?: string }): Promise<Cargo> {
     const created = await this.prisma.cargo.create({
-      data: cargo,
+      data: {
+        nome: cargo.name,
+        descricao: cargo.description,
+      },
     });
 
-    return new Cargo(
-      created.id,
-      created.nome,
-      created.descricao ?? undefined,
-      created.createdAt,
-      created.updatedAt,
-    );
+    return new Cargo({
+      name: created.nome,
+      description: created.descricao || undefined,
+    });
   }
 
   async findAll(): Promise<Cargo[]> {
     const cargos = await this.prisma.cargo.findMany();
     return cargos.map(
       (cargo) =>
-        new Cargo(
-          cargo.id,
-          cargo.nome,
-          cargo.descricao ?? undefined,
-          cargo.createdAt,
-          cargo.updatedAt,
-        ),
+        new Cargo({
+          name: cargo.nome,
+          description: cargo.descricao || undefined,
+        }),
     );
   }
 
@@ -50,31 +45,28 @@ export class PrismaCargoRepository implements CargoRepository {
       return null;
     }
 
-    return new Cargo(
-      cargo.id,
-      cargo.nome,
-      cargo.descricao ?? undefined,
-      cargo.createdAt,
-      cargo.updatedAt,
-    );
+    return new Cargo({
+      name: cargo.nome,
+      description: cargo.descricao || undefined,
+    });
   }
 
   async update(
     id: string,
-    cargo: Partial<Omit<Cargo, 'id' | 'createdAt' | 'updatedAt'>>,
+    cargo: Partial<{ name: string; description?: string }>,
   ): Promise<Cargo> {
     const updated = await this.prisma.cargo.update({
       where: { id },
-      data: cargo,
+      data: {
+        nome: cargo.name,
+        descricao: cargo.description,
+      },
     });
 
-    return new Cargo(
-      updated.id,
-      updated.nome,
-      updated.descricao ?? undefined,
-      updated.createdAt,
-      updated.updatedAt,
-    );
+    return new Cargo({
+      name: updated.nome,
+      description: updated.descricao || undefined,
+    });
   }
 
   async delete(id: string): Promise<void> {
