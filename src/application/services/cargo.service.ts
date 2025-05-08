@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { CreateCargoDto } from '../dtos/create-cargo.dto';
 import { CargoResponseDto } from '../dtos/cargo-response.dto';
 import { CargoRepository } from '../../domain/repositories/cargo-repository';
@@ -6,7 +6,10 @@ import { Cargo } from '../../domain/entities/cargo';
 
 @Injectable()
 export class CargoService {
-  constructor(private readonly cargoRepository: CargoRepository) {}
+  constructor(
+    @Inject('CargoRepository')
+    private readonly cargoRepository: CargoRepository,
+  ) {}
 
   async create(createCargoDto: CreateCargoDto): Promise<CargoResponseDto> {
     const cargo = await this.cargoRepository.create({

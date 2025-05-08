@@ -7,8 +7,8 @@ export class Cargo {
   private readonly createdAt: Date;
   private updatedAt: Date;
 
-  constructor(props: { name: string; description?: string }) {
-    this.id = uuidv4();
+  constructor(props: { id?: string; name: string; description?: string }) {
+    this.id = props.id || uuidv4(); // Usar o ID fornecido ou gerar um novo
     this.name = props.name;
     this.description = props.description;
     this.createdAt = new Date();

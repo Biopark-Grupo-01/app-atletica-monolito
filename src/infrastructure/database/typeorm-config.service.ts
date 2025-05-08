@@ -1,12 +1,2 @@
-import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { TypeOrmModuleOptions, TypeOrmOptionsFactory } from '@nestjs/typeorm';
-
-@Injectable()
-export class TypeOrmConfigService implements TypeOrmOptionsFactory {
-  constructor(private configService: ConfigService) {}
-
-  createTypeOrmOptions(): TypeOrmModuleOptions {
-    return this.configService.get('database') as TypeOrmModuleOptions;
-  }
-}
+// This file is no longer needed with Prisma
+// The PrismaService handles the database connection configuration

@@ -25,8 +25,9 @@ export class UserService {
 
     // Criar a entidade de usuário
     const cargoEntity = new Cargo({
-      name: cargo.nome,
-      description: cargo.descricao,
+      id: createUserDto.cargoId, // Usar o ID original do banco de dados
+      name: cargo.getName(),
+      description: cargo.getDescription(),
     });
 
     const user = new User({
@@ -100,8 +101,9 @@ export class UserService {
       }
 
       const cargoEntity = new Cargo({
-        name: newCargo.nome,
-        description: newCargo.descricao,
+        id: updateData.cargoId, // Usar o ID original do banco de dados
+        name: newCargo.getName(),
+        description: newCargo.getDescription(),
       });
 
       existingUser.setCargo(cargoEntity);

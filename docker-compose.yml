@@ -12,13 +12,14 @@ services:
     env_file:
       - .env
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
       - DATABASE_URL=postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME}
     networks:
       - atletica-network
     command: >
-      sh -c "npx prisma migrate deploy && npm run start:prod"
+      sh -c "npx prisma generate && npx prisma migrate deploy && npm run start:prod"
 
   postgres:
     image: postgres:15
@@ -34,6 +35,11 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - atletica-network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}']
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 networks:
   atletica-network:

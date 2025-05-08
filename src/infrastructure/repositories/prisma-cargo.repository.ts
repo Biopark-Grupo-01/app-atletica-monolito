@@ -1,27 +1,24 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
 import { Cargo } from '../../domain/entities/cargo';
 import { CargoRepository } from '../../domain/repositories/cargo-repository';
+import { PrismaService } from '../database/prisma.service';
 
 @Injectable()
 export class PrismaCargoRepository implements CargoRepository {
-  private prisma: PrismaClient;
-
-  constructor() {
-    this.prisma = new PrismaClient();
-  }
+  constructor(private prisma: PrismaService) {}
 
   async create(cargo: { name: string; description?: string }): Promise<Cargo> {
     const created = await this.prisma.cargo.create({
       data: {
-        nome: cargo.name,
-        descricao: cargo.description,
+        name: cargo.name,
+        description: cargo.description,
       },
     });
 
     return new Cargo({
-      name: created.nome,
-      description: created.descricao || undefined,
+      id: created.id, // Adicionando o ID ao criar a entidade Cargo
+      name: created.name,
+      description: created.description || undefined,
     });
   }
 
@@ -30,8 +27,9 @@ export class PrismaCargoRepository implements CargoRepository {
     return cargos.map(
       (cargo) =>
         new Cargo({
-          name: cargo.nome,
-          description: cargo.descricao || undefined,
+          id: cargo.id, // Adicionando o ID ao criar a entidade Cargo
+          name: cargo.name,
+          description: cargo.description || undefined,
         }),
     );
   }
@@ -46,8 +44,9 @@ export class PrismaCargoRepository implements CargoRepository {
     }
 
     return new Cargo({
-      name: cargo.nome,
-      description: cargo.descricao || undefined,
+      id: cargo.id, // Adicionando o ID ao criar a entidade Cargo
+      name: cargo.name,
+      description: cargo.description || undefined,
     });
   }
 
@@ -58,14 +57,15 @@ export class PrismaCargoRepository implements CargoRepository {
     const updated = await this.prisma.cargo.update({
       where: { id },
       data: {
-        nome: cargo.name,
-        descricao: cargo.description,
+        name: cargo.name,
+        description: cargo.description,
       },
     });
 
     return new Cargo({
-      name: updated.nome,
-      description: updated.descricao || undefined,
+      id: updated.id, // Adicionando o ID ao criar a entidade Cargo
+      name: updated.name,
+      description: updated.description || undefined,
     });
   }
 
