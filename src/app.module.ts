@@ -1,30 +1,12 @@
+// app.module.ts
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@infrastructure/config/config.module';
-import { DatabaseModule } from '@infrastructure/database/database.module';
-
-import { UserController } from './presentation/controllers/user.controller';
-import { CargoController } from './presentation/controllers/cargo.controller';
-
-import { UserService } from './application/services/user.service';
-import { CargoService } from './application/services/cargo.service';
-
-import { PrismaCargoRepository } from './infrastructure/repositories/prisma-cargo.repository';
-import { PrismaUserRepository } from './infrastructure/repositories/prisma-user.repository';
+import { NewsModule } from './news/news.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 @Module({
-  imports: [ConfigModule, DatabaseModule],
-  controllers: [UserController, CargoController],
-  providers: [
-    UserService,
-    CargoService,
-    {
-      provide: 'CargoRepository',
-      useClass: PrismaCargoRepository,
-    },
-    {
-      provide: 'UserRepository',
-      useClass: PrismaUserRepository,
-    },
-  ],
+  imports: [NewsModule],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

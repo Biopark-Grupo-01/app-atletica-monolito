@@ -1,42 +1,22 @@
 {
   "compilerOptions": {
-    // Configurações de ECMAScript
-    "target": "ES2023",
     "module": "commonjs",
-    "moduleResolution": "node",
-
-    // Configurações de caminhos e saída
-    "baseUrl": "./",
-    "outDir": "./dist",
-    "paths": {
-      "@app/*": ["src/*"],
-      "@infrastructure/*": ["src/infrastructure/*"],
-      "@contexts/*": ["src/contexts/*"]
-    },
-
-    // Configurações de decoradores
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-
-    // Configurações de tipo e verificação
-    "strictNullChecks": true,
-    "noImplicitAny": false,
-    "strictBindCallApply": false,
-    "noFallthroughCasesInSwitch": false,
-    "forceConsistentCasingInFileNames": true,
-
-    // Configurações de interoperabilidade
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-
-    // Configurações de compilação
     "declaration": true,
-    "sourceMap": true,
     "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "es2017",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true
-  },
-  "include": ["src/**/*", "test/**/*"],
-  "exclude": ["node_modules", "dist"]
+    "strict": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "paths": {
+      "*": ["./src/*"]
+    }
+  }
 }
