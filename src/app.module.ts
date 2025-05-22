@@ -1,30 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@infrastructure/config/config.module';
 import { DatabaseModule } from '@infrastructure/database/database.module';
-
-import { UserController } from './presentation/controllers/user.controller';
-import { CargoController } from './presentation/controllers/cargo.controller';
-
-import { UserService } from './application/services/user.service';
-import { CargoService } from './application/services/cargo.service';
-
-import { PrismaCargoRepository } from './infrastructure/repositories/prisma-cargo.repository';
-import { PrismaUserRepository } from './infrastructure/repositories/prisma-user.repository';
+import { PrismaModule } from './prisma/prisma.module';
+import { UserModule } from './user/user.module';
+import { RoleModule } from './role/role.module';
 
 @Module({
-  imports: [ConfigModule, DatabaseModule],
-  controllers: [UserController, CargoController],
-  providers: [
-    UserService,
-    CargoService,
-    {
-      provide: 'CargoRepository',
-      useClass: PrismaCargoRepository,
-    },
-    {
-      provide: 'UserRepository',
-      useClass: PrismaUserRepository,
-    },
-  ],
+  imports: [ConfigModule, DatabaseModule, PrismaModule, UserModule, RoleModule],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}
