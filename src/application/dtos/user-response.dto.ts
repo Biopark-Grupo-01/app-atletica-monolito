@@ -1,4 +1,4 @@
-import { CargoResponseDto } from './cargo-response.dto';
+import { RoleResponseDto } from './role-response.dto';
 
 export class UserResponseDto {
   id: string;
@@ -7,7 +7,7 @@ export class UserResponseDto {
   cpf: string;
   email: string;
   phone: string;
-  cargo: CargoResponseDto;
+  role: RoleResponseDto;
   createdAt: Date;
   updatedAt: Date;
 }
