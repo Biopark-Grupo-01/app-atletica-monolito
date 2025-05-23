@@ -8,23 +8,26 @@ export class ProductInMemoryRepository implements ProductRepository {
 
   async findAll(): Promise<Product[]> {
     // Clone products properly preserving methods
-    return this.products.map(product => new Product({...product}));
+    return this.products.map((product) => new Product({ ...product }));
   }
 
   async findById(id: string): Promise<Product | null> {
-    const product = this.products.find(p => p.id === id);
-    return product ? new Product({...product}) : null;
+    const product = this.products.find((p) => p.id === id);
+    return product ? new Product({ ...product }) : null;
   }
 
   async create(product: Product): Promise<Product> {
     // Ensure product is a proper instance with methods
-    const newProduct = new Product({...product});
+    const newProduct = new Product({ ...product });
     this.products.push(newProduct);
-    return new Product({...newProduct});
+    return new Product({ ...newProduct });
   }
 
-  async update(id: string, productData: Partial<Product>): Promise<Product | null> {
-    const index = this.products.findIndex(p => p.id === id);
+  async update(
+    id: string,
+    productData: Partial<Product>,
+  ): Promise<Product | null> {
+    const index = this.products.findIndex((p) => p.id === id);
     if (index === -1) {
       return null;
     }
@@ -37,12 +40,26 @@ export class ProductInMemoryRepository implements ProductRepository {
     });
 
     this.products[index] = updatedProduct;
-    return new Product({...updatedProduct});
+    return new Product({ ...updatedProduct });
   }
 
-  async delete(id: string): Promise<boolean> {
+  async delete(
+    id: string,
+  ): Promise<{ success: boolean; product: Product | null }> {
+    // Encontrar o produto antes de deletá-lo
+    const product = await this.findById(id);
+
+    if (!product) {
+      return { success: false, product: null };
+    }
+
     const initialLength = this.products.length;
-    this.products = this.products.filter(p => p.id !== id);
-    return initialLength !== this.products.length;
+    this.products = this.products.filter((p) => p.id !== id);
+    const success = initialLength !== this.products.length;
+
+    return {
+      success,
+      product,
+    };
   }
 }

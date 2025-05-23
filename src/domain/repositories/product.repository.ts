@@ -7,5 +7,5 @@ export interface ProductRepository {
   findById(id: string): Promise<Product | null>;
   create(product: Product): Promise<Product>;
   update(id: string, product: Partial<Product>): Promise<Product | null>;
-  delete(id: string): Promise<boolean>;
+  delete(id: string): Promise<{ success: boolean; product: Product | null }>;
 }

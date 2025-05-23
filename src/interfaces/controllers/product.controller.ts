@@ -1,6 +1,19 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { ProductService } from '../../application/services/product.service';
-import { CreateProductDto, UpdateProductDto } from '../../application/dtos/product.dto';
+import {
+  CreateProductDto,
+  UpdateProductDto,
+} from '../../application/dtos/product.dto';
 import { Product } from '../../domain/entities/product.entity';
 
 @Controller('products')
@@ -39,10 +52,16 @@ export class ProductController {
   }
 
   @Delete(':id')
-  async delete(@Param('id') id: string): Promise<{ success: boolean }> {
+  async delete(
+    @Param('id') id: string,
+  ): Promise<{
+    success: boolean;
+    productId: string;
+    productName: string | null;
+  }> {
     try {
       const result = await this.productService.delete(id);
-      return { success: result };
+      return result;
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.NOT_FOUND);
     }

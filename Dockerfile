@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:18.18.2-alpine
 
 WORKDIR /usr/src/app
 
@@ -14,6 +14,6 @@ COPY . .
 # Compilar a aplicação
 RUN npm run build
 
-EXPOSE 3000
+EXPOSE 3001
 
 CMD ["npm", "run", "start:prod"]
