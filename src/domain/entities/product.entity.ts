@@ -14,19 +14,19 @@ export class Product {
   @Column()
   name: string;
 
-  @Column()
+  @Column('text') // Ensure description is text
   description: string;
 
   @Column('decimal', { precision: 10, scale: 2 })
   price: number;
 
-  @Column()
+  @Column('int') // Ensure stock is integer
   stock: number;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp with time zone' })
   updatedAt: Date;
 
   constructor(partial: Partial<Product>) {

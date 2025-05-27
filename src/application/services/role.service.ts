@@ -8,8 +8,6 @@ import {
 import {
   IRoleRepository,
   ROLE_REPOSITORY_TOKEN,
-  CreateRoleData,
-  UpdateRoleData,
 } from '../../domain/repositories/role.repository.interface';
 import { Role } from '../../domain/entities/role.entity';
 import { CreateRoleDto } from '../dtos/create-role.dto';
@@ -27,9 +25,9 @@ export class RoleService {
     return {
       id: role.id,
       name: role.name,
-      description: role.description ?? undefined,
-      createdAt: role.getCreatedAt(),
-      updatedAt: role.updatedAt,
+      description: role.description ?? undefined, // Ensure null becomes undefined
+      createdAt: role.createdAt, // Direct access from TypeORM entity
+      updatedAt: role.updatedAt, // Direct access from TypeORM entity
     };
   }
 
@@ -47,12 +45,8 @@ export class RoleService {
       );
     }
 
-    const roleData: CreateRoleData = {
-      name: createRoleDto.name,
-      description: createRoleDto.description,
-    };
-
-    const newRole = await this.roleRepository.create(roleData);
+    // Repository now accepts DTO directly
+    const newRole = await this.roleRepository.create(createRoleDto);
     return this.mapToResponseDto(newRole);
   }
 
@@ -89,19 +83,23 @@ export class RoleService {
       }
     }
 
-    const updateData: UpdateRoleData = {};
-    if (Object.prototype.hasOwnProperty.call(updateRoleDto, 'name'))
-      updateData.name = updateRoleDto.name;
-    if (Object.prototype.hasOwnProperty.call(updateRoleDto, 'description'))
-      updateData.description = updateRoleDto.description;
+    // Repository now accepts DTO directly
+    // Ensure that if name or description are not provided, they are not set to null unless intended
+    const dtoToUpdate: UpdateRoleDto = {};
+    if (updateRoleDto.hasOwnProperty('name')) dtoToUpdate.name = updateRoleDto.name;
+    if (updateRoleDto.hasOwnProperty('description')) dtoToUpdate.description = updateRoleDto.description;
 
-    if (Object.keys(updateData).length === 0) {
-      throw new BadRequestException('No data provided for update.');
+
+    if (Object.keys(dtoToUpdate).length === 0) {
+      // If you want to prevent updates with no changes:
+      // throw new BadRequestException('No data provided for update.');
+      // Or return the current state:
+      return this.mapToResponseDto(roleToUpdate);
     }
 
-    const updatedRole = await this.roleRepository.update(id, updateData);
+    const updatedRole = await this.roleRepository.update(id, dtoToUpdate);
     if (!updatedRole) {
-      throw new NotFoundException(
+      throw new NotFoundException( // Should be caught by findById or repo error
         `Role with ID '${id}' not found during update operation.`,
       );
     }

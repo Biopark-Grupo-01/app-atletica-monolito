@@ -1,16 +1,16 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@infrastructure/config/config.module';
+import { ConfigModule as AppConfigModule } from '@infrastructure/config/config.module'; // Aliased to avoid conflict
 import { DatabaseModule } from '@infrastructure/database/database.module';
-import { PrismaModule } from './prisma/prisma.module';
-import { UserModule } from './user/user.module';
-import { RoleModule } from './role/role.module';
-import { ProductModule } from './product.module';
+import { UserModule } from './modules/user.module';
+import { RoleModule } from './modules/role.module';
+import { ProductModule } from './modules/product.module';
+import { ConfigModule } from '@nestjs/config'; // For .env loading
 
 @Module({
   imports: [
-    ConfigModule,
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
+    AppConfigModule,
     DatabaseModule,
-    PrismaModule,
     UserModule,
     RoleModule,
     ProductModule,
