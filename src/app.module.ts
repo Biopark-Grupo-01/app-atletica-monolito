@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule as AppConfigModule } from '@infrastructure/config/config.module'; // Aliased to avoid conflict
+import { ConfigModule as AppConfigModule } from '@infrastructure/config/config.module';
 import { DatabaseModule } from '@infrastructure/database/database.module';
 import { UserModule } from './modules/user.module';
 import { RoleModule } from './modules/role.module';
 import { ProductModule } from './modules/product.module';
-import { ConfigModule } from '@nestjs/config'; // For .env loading
+import { TrainingModule } from '.modules/training.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { ConfigModule } from '@nestjs/config'; // For .env loading
     UserModule,
     RoleModule,
     ProductModule,
+    TrainingModule,
   ],
   controllers: [],
   providers: [],
