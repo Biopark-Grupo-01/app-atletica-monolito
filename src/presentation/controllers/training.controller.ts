@@ -9,6 +9,8 @@ import {
   HttpException,
   HttpStatus,
   Req,
+  HttpCode,
+  NotFoundException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -25,7 +27,7 @@ import {
 } from '../../application/dtos/training.dto';
 import { Training } from '../../domain/entities/training.entity';
 import { Request } from 'express';
-import { HateoasResponse } from '../http/hateoas.link';
+import { HateoasResponse } from '../../interfaces/http/hateoas.link';
 
 @ApiTags('trainings')
 @Controller('trainings')
@@ -100,7 +102,11 @@ export class TrainingController {
 
       return response;
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : 'An unexpected error occurred';
+      throw new HttpException(message, HttpStatus.NOT_FOUND);
     }
   }
 
@@ -178,11 +184,16 @@ export class TrainingController {
 
       return response;
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : 'An unexpected error occurred';
+      throw new HttpException(message, HttpStatus.NOT_FOUND);
     }
   }
 
   @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
     summary: 'Excluir um treino',
     description: 'Exclui um treino com base no ID fornecido',
@@ -192,52 +203,13 @@ export class TrainingController {
     description: 'ID do treino',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  @ApiResponse({
-    status: 200,
-    description: 'Treino excluído com sucesso',
-    schema: {
-      type: 'object',
-      properties: {
-        success: { type: 'boolean', example: true },
-        trainingId: {
-          type: 'string',
-          example: '123e4567-e89b-12d3-a456-426614174000',
-        },
-        trainingTitle: {
-          type: 'string',
-          example: 'Treino Funcional',
-          nullable: true,
-        },
-      },
-    },
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Treino não encontrado',
-  })
-  async delete(
-    @Param('id') id: string,
-    @Req() request: Request,
-  ): Promise<
-    HateoasResponse<{
-      success: boolean;
-      trainingId: string;
-      trainingTitle: string | null;
-    }>
-  > {
-    try {
-      const result = await this.trainingService.delete(id);
-
-      const response = new HateoasResponse(result);
-
-      const baseUrl = `${request.protocol}://${request.get('host')}`;
-
-      response.addLink(`${baseUrl}/trainings`, 'collection', 'GET');
-      response.addLink(`${baseUrl}/trainings`, 'create', 'POST');
-
-      return response;
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+  @ApiResponse({ status: 204, description: 'Treino excluído com sucesso' })
+  @ApiResponse({ status: 404, description: 'Treino não encontrado' })
+  async delete(@Param('id') id: string): Promise<void> {
+    const training = await this.trainingService.findById(id);
+    if (!training) {
+      throw new NotFoundException('Training not found.');
     }
+    await this.trainingService.delete(id);
   }
 }

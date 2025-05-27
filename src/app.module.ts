@@ -4,7 +4,7 @@ import { DatabaseModule } from '@infrastructure/database/database.module';
 import { UserModule } from './modules/user.module';
 import { RoleModule } from './modules/role.module';
 import { ProductModule } from './modules/product.module';
-import { TrainingModule } from '.modules/training.module';
+import { TrainingModule } from './modules/training.module';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({

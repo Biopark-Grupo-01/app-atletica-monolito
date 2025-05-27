@@ -14,13 +14,13 @@ export class Product {
   @Column()
   name: string;
 
-  @Column('text') // Ensure description is text
+  @Column('text')
   description: string;
 
   @Column('decimal', { precision: 10, scale: 2 })
   price: number;
 
-  @Column('int') // Ensure stock is integer
+  @Column('int')
   stock: number;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })

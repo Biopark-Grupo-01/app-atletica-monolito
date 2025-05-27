@@ -31,6 +31,4 @@ export class Role {
   constructor(partial: Partial<Role>) {
     Object.assign(this, partial);
   }
-
-  // validate() method can be kept or rely on class-validator at DTO level
 }

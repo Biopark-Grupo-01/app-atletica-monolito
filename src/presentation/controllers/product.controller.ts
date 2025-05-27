@@ -9,6 +9,7 @@ import {
   HttpException,
   HttpStatus,
   Req,
+  NotFoundException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -23,9 +24,8 @@ import {
   UpdateProductDto,
   ProductResponseDto,
 } from '../../application/dtos/product.dto';
-import { Product } from '../../domain/entities/product.entity';
 import { Request } from 'express';
-import { HateoasResponse } from '../http/hateoas.link';
+import { HateoasResponse } from '../../interfaces/http/hateoas.link';
 
 @ApiTags('products')
 @Controller('products')
@@ -42,21 +42,19 @@ export class ProductController {
     description: 'Lista de produtos recuperada com sucesso',
     type: [ProductResponseDto],
   })
-  async findAll(@Req() request: Request): Promise<HateoasResponse<Product[]>> {
+  async findAll(
+    @Req() request: Request,
+  ): Promise<HateoasResponse<ProductResponseDto[]>> {
     const products = await this.productService.findAll();
 
-    // Criar resposta HATEOAS
     const response = new HateoasResponse(products);
 
-    // Base URL para construir links
     const baseUrl = `${request.protocol}://${request.get('host')}`;
 
-    // Adicionar links relacionados
     response.addLink(`${baseUrl}/products`, 'self', 'GET');
 
     response.addLink(`${baseUrl}/products`, 'create', 'POST');
 
-    // Adicionar links para cada produto
     products.forEach((product) => {
       response.addLink(
         `${baseUrl}/products/${product.id}`,
@@ -87,17 +85,14 @@ export class ProductController {
   async findById(
     @Param('id') id: string,
     @Req() request: Request,
-  ): Promise<HateoasResponse<Product>> {
+  ): Promise<HateoasResponse<ProductResponseDto>> {
     try {
       const product = await this.productService.findById(id);
 
-      // Criar resposta HATEOAS
       const response = new HateoasResponse(product);
 
-      // Base URL para construir links
       const baseUrl = `${request.protocol}://${request.get('host')}`;
 
-      // Adicionar links relacionados
       response.addLink(`${baseUrl}/products/${id}`, 'self', 'GET');
 
       response.addLink(`${baseUrl}/products`, 'collection', 'GET');
@@ -135,16 +130,13 @@ export class ProductController {
   async create(
     @Body() createProductDto: CreateProductDto,
     @Req() request: Request,
-  ): Promise<HateoasResponse<Product>> {
+  ): Promise<HateoasResponse<ProductResponseDto>> {
     const product = await this.productService.create(createProductDto);
 
-    // Criar resposta HATEOAS
     const response = new HateoasResponse(product);
 
-    // Base URL para construir links
     const baseUrl = `${request.protocol}://${request.get('host')}`;
 
-    // Adicionar links relacionados
     response.addLink(`${baseUrl}/products/${product.id}`, 'self', 'GET');
 
     response.addLink(`${baseUrl}/products`, 'collection', 'GET');
@@ -180,17 +172,14 @@ export class ProductController {
     @Param('id') id: string,
     @Body() updateProductDto: UpdateProductDto,
     @Req() request: Request,
-  ): Promise<HateoasResponse<Product>> {
+  ): Promise<HateoasResponse<ProductResponseDto>> {
     try {
       const product = await this.productService.update(id, updateProductDto);
 
-      // Criar resposta HATEOAS
       const response = new HateoasResponse(product);
 
-      // Base URL para construir links
       const baseUrl = `${request.protocol}://${request.get('host')}`;
 
-      // Adicionar links relacionados
       response.addLink(`${baseUrl}/products/${id}`, 'self', 'GET');
 
       response.addLink(`${baseUrl}/products`, 'collection', 'GET');
@@ -221,59 +210,13 @@ export class ProductController {
     description: 'ID do produto',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  @ApiResponse({
-    status: 200,
-    description: 'Produto excluído com sucesso',
-    schema: {
-      type: 'object',
-      properties: {
-        success: { type: 'boolean', example: true },
-        productId: {
-          type: 'string',
-          example: '123e4567-e89b-12d3-a456-426614174000',
-        },
-        productName: {
-          type: 'string',
-          example: 'Camisa da Atlética',
-          nullable: true,
-        },
-      },
-    },
-  })
+  @ApiResponse({ status: 204, description: 'Produto excluído com sucesso' })
   @ApiResponse({ status: 404, description: 'Produto não encontrado' })
-  async delete(
-    @Param('id') id: string,
-    @Req() request: Request,
-  ): Promise<
-    HateoasResponse<{
-      success: boolean;
-      productId: string;
-      productName: string | null;
-    }>
-  > {
-    try {
-      const result = await this.productService.delete(id);
-
-      // Criar resposta HATEOAS
-      const response = new HateoasResponse(result);
-
-      // Base URL para construir links
-      const baseUrl = `${request.protocol}://${request.get('host')}`;
-
-      // Adicionar links relacionados
-      response.addLink(`${baseUrl}/products`, 'collection', 'GET');
-
-      response.addLink(`${baseUrl}/products`, 'create', 'POST');
-
-      return response;
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
-      }
-      throw new HttpException(
-        'An unexpected error occurred',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+  async delete(@Param('id') id: string): Promise<void> {
+    const product = await this.productService.findById(id);
+    if (!product) {
+      throw new NotFoundException('Product not found.');
     }
+    await this.productService.delete(id);
   }
 }

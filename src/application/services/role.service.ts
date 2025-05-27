@@ -25,9 +25,9 @@ export class RoleService {
     return {
       id: role.id,
       name: role.name,
-      description: role.description ?? undefined, // Ensure null becomes undefined
-      createdAt: role.createdAt, // Direct access from TypeORM entity
-      updatedAt: role.updatedAt, // Direct access from TypeORM entity
+      description: role.description ?? undefined,
+      createdAt: role.createdAt,
+      updatedAt: role.updatedAt,
     };
   }
 
@@ -45,7 +45,6 @@ export class RoleService {
       );
     }
 
-    // Repository now accepts DTO directly
     const newRole = await this.roleRepository.create(createRoleDto);
     return this.mapToResponseDto(newRole);
   }
@@ -83,23 +82,19 @@ export class RoleService {
       }
     }
 
-    // Repository now accepts DTO directly
-    // Ensure that if name or description are not provided, they are not set to null unless intended
     const dtoToUpdate: UpdateRoleDto = {};
-    if (updateRoleDto.hasOwnProperty('name')) dtoToUpdate.name = updateRoleDto.name;
-    if (updateRoleDto.hasOwnProperty('description')) dtoToUpdate.description = updateRoleDto.description;
-
+    if (Object.prototype.hasOwnProperty.call(updateRoleDto, 'name'))
+      dtoToUpdate.name = updateRoleDto.name;
+    if (Object.prototype.hasOwnProperty.call(updateRoleDto, 'description'))
+      dtoToUpdate.description = updateRoleDto.description;
 
     if (Object.keys(dtoToUpdate).length === 0) {
-      // If you want to prevent updates with no changes:
-      // throw new BadRequestException('No data provided for update.');
-      // Or return the current state:
       return this.mapToResponseDto(roleToUpdate);
     }
 
     const updatedRole = await this.roleRepository.update(id, dtoToUpdate);
     if (!updatedRole) {
-      throw new NotFoundException( // Should be caught by findById or repo error
+      throw new NotFoundException(
         `Role with ID '${id}' not found during update operation.`,
       );
     }
@@ -109,9 +104,7 @@ export class RoleService {
   async delete(id: string): Promise<void> {
     const success = await this.roleRepository.delete(id);
     if (!success) {
-      throw new NotFoundException(
-        `Role with ID '${id}' not found for deletion.`,
-      );
+      throw new BadRequestException(`Role with ID ${id} cold not be deleted.`);
     }
   }
 }

@@ -11,5 +11,4 @@ export interface IRoleRepository {
   findByName(name: string): Promise<Role | null>;
   update(id: string, updateRoleDto: UpdateRoleDto): Promise<Role | null>;
   delete(id: string): Promise<boolean>;
-  // remove(id: string): Promise<void>; // Alternative delete signature
 }

@@ -51,7 +51,7 @@ export class UserController {
   async delete(@Param('id') id: string): Promise<void> {
     const user = await this.userService.findOne(id);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('User not found.');
     }
     await this.userService.delete(id);
   }

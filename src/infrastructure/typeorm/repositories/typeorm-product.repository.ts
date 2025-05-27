@@ -2,14 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product } from '../../../domain/entities/product.entity';
-import { ProductRepository } from '../../../domain/repositories/product.repository';
+import { IProductRepository } from '../../../domain/repositories/product.repository.interface';
 import {
   CreateProductDto,
   UpdateProductDto,
 } from '../../../application/dtos/product.dto';
 
 @Injectable()
-export class TypeOrmProductRepository implements ProductRepository {
+export class TypeOrmProductRepository implements IProductRepository {
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,

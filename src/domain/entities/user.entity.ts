@@ -11,11 +11,11 @@ import { Role } from './role.entity';
 
 export interface UserCreateProps {
   name: string;
-  registrationNumber?: string; // Optional
-  cpf?: string; // Optional
+  registrationNumber?: string;
+  cpf?: string;
   email: string;
-  hashedPassword?: string; // Optional, as password comes from DTO
-  phone?: string; // Optional
+  hashedPassword?: string;
+  phone?: string;
   role: Role;
   googleId?: string;
   profilePictureUrl?: string;
@@ -45,11 +45,11 @@ export class User {
   @Column({ nullable: true })
   phone?: string;
 
-  @ManyToOne(() => Role, (role) => role.users, { eager: true }) // Eager load role
+  @ManyToOne(() => Role, (role) => role.users, { eager: true })
   @JoinColumn({ name: 'role_id' })
   role: Role;
 
-  @Column({ name: 'role_id' }) // Foreign key column
+  @Column({ name: 'role_id' })
   roleId: string;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })

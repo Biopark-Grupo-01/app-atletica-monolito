@@ -75,7 +75,7 @@ export class UserService {
     }
     if (
       createUserDto.cpf &&
-      createUserDto.cpf.length > 0 && // Ensure CPF is not empty string before check
+      createUserDto.cpf.length > 0 &&
       (await this.userRepository.findByCpf(createUserDto.cpf))
     ) {
       throw new ConflictException('CPF already in use.');
@@ -99,12 +99,10 @@ export class UserService {
     if (dtoToCreate.password) {
       dtoToCreate.password = await this.hashPassword(dtoToCreate.password);
     } else if (!dtoToCreate.googleId) {
-      // If not a Google Sign-In and no password, it's an issue
       throw new BadRequestException(
         'Password is required for non-Google sign-up.',
       );
     }
-    // For Google Sign-In, password can be null/undefined
 
     try {
       const savedUser = await this.userRepository.create(dtoToCreate);
@@ -177,7 +175,6 @@ export class UserService {
     if (dtoToUpdate.password) {
       dtoToUpdate.password = await this.hashPassword(dtoToUpdate.password);
     } else {
-      // Retain existing password if not provided in DTO
       delete dtoToUpdate.password;
     }
 
@@ -193,9 +190,7 @@ export class UserService {
   async delete(id: string): Promise<void> {
     const success = await this.userRepository.delete(id);
     if (!success) {
-      throw new NotFoundException(
-        `User with ID '${id}' not found for deletion.`,
-      );
+      throw new NotFoundException(`User with ID '${id}' cold not be deleted.`);
     }
   }
 }

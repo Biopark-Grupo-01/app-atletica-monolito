@@ -1,17 +1,17 @@
 import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { Training } from '../../domain/entities/training.entity';
 import {
-  TrainingRepository,
-  TRAINING_REPOSITORY,
-} from '../../domain/repositories/training.repository';
+  ITrainingRepository,
+  TRAINING_REPOSITORY_TOKEN,
+} from '../../domain/repositories/training.repository.interface';
 import { CreateTrainingDto, UpdateTrainingDto } from '../dtos/training.dto';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class TrainingService {
   constructor(
-    @Inject(TRAINING_REPOSITORY)
-    private trainingRepository: TrainingRepository,
+    @Inject(TRAINING_REPOSITORY_TOKEN)
+    private trainingRepository: ITrainingRepository,
   ) {}
 
   async findAll(): Promise<Training[]> {
@@ -55,21 +55,12 @@ export class TrainingService {
     return updatedTraining;
   }
 
-  async delete(id: string): Promise<{
-    success: boolean;
-    trainingId: string;
-    trainingTitle: string | null;
-  }> {
-    const training = await this.trainingRepository.findById(id);
-    if (!training) {
-      throw new NotFoundException(`Training with ID ${id} not found`);
+  async delete(id: string): Promise<void> {
+    const success = await this.trainingRepository.delete(id);
+    if (!success) {
+      throw new NotFoundException(
+        `Training with ID ${id} could not be deleted.`,
+      );
     }
-
-    const result = await this.trainingRepository.delete(id);
-    return {
-      success: result.success,
-      trainingId: id,
-      trainingTitle: result.training?.title || null,
-    };
   }
 }
