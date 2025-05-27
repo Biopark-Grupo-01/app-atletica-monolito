@@ -8,11 +8,11 @@ services:
     ports:
       - '3001:3001'
     environment:
-      - NODE_ENV=production
+      - ENVIRONMENT=production
       - PORT=3001
       - DATABASE_HOST=postgres
       - DATABASE_PORT=5432
-      - DATABASE_USERNAME=postgres
+      - DATABASE_USER=postgres
       - DATABASE_PASSWORD=postgres123
       - DATABASE_NAME=atletica
     restart: unless-stopped
