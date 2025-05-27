@@ -1,40 +1,43 @@
-// news.service.ts
-import { Injectable } from '@nestjs/common';
-import { CreateNewsDto, UpdateNewsDto } from './news.dto';
+/* eslint-disable prettier/prettier */
+
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { News } from './news.entity';
+import { CreateNewsDto } from './dto/create-news.dto';
+import { UpdateNewsDto } from './dto/update-news.dto';
 
 @Injectable()
 export class NewsService {
-  private readonly news = [];
-  private nextId = 1;
+  constructor(
+    @InjectRepository(News)
+    private newsRepository: Repository<News>,
+  ) {}
 
-  create(createNewsDto: CreateNewsDto) {
-    const newNews = {
-      id: this.nextId++,
-      ...createNewsDto,
-    };
-    this.news.push(newNews);
-    return newNews;
+  async create(dto: CreateNewsDto): Promise<News> {
+    const news = this.newsRepository.create(dto);
+    return this.newsRepository.save(news);
   }
 
-  findAll() {
-    return this.news;
+  async findAll(): Promise<News[]> {
+    return this.newsRepository.find();
   }
 
-  findOne(id: number) {
-    return this.news.find((news) => news.id === id);
+  async findOne(id: string): Promise<News> {
+    const news = await this.newsRepository.findOne({ where: { id } });
+    if (!news) throw new NotFoundException('Notícia não encontrada');
+    return news;
   }
 
-  update(id: number, updateNewsDto: UpdateNewsDto) {
-    const newsIndex = this.news.findIndex((news) => news.id === id);
-    if (newsIndex === -1) {
-      return null; // Ou você pode lançar um erro
-    }
-    this.news[newsIndex] = { ...this.news[newsIndex], ...updateNewsDto };
-    return this.news[newsIndex];
+  async update(id: string, dto: UpdateNewsDto): Promise<News> {
+    const news = await this.findOne(id);
+    const updated = Object.assign(news, dto);
+    return this.newsRepository.save(updated);
   }
 
-  remove(id: number) {
-    this.news = this.news.filter((news) => news.id !== id);
-    return { message: `Notícia com ID ${id} removida com sucesso.` };
+  async remove(id: string): Promise<void> {
+    const result = await this.newsRepository.delete(id);
+    if (result.affected === 0)
+      throw new NotFoundException('Notícia não encontrada');
   }
 }

@@ -2,13 +2,9 @@ node_modules
 npm-debug.log
 dist
 .git
-.gitignore
 .env
-.env.*
-README.md
 .vscode
-coverage
-test
+.idea
+.DS_Store
 *.md
-.eslintrc*
-jest.config.*
+!README.md

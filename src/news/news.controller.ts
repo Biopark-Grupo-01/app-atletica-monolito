@@ -1,15 +1,17 @@
-// news.controller.ts
-import { Controller, Get, Post, Put, Delete, Param, Body } from '@nestjs/common';
+/* eslint-disable prettier/prettier */
+
+import { Controller, Post, Get, Param, Put, Delete, Body } from '@nestjs/common';
 import { NewsService } from './news.service';
-import { CreateNewsDto, UpdateNewsDto } from './news.dto';
+import { CreateNewsDto } from './dto/create-news.dto';
+import { UpdateNewsDto } from './dto/update-news.dto';
 
 @Controller('news')
 export class NewsController {
   constructor(private readonly newsService: NewsService) {}
 
   @Post()
-  create(@Body() createNewsDto: CreateNewsDto) {
-    return this.newsService.create(createNewsDto);
+  create(@Body() dto: CreateNewsDto) {
+    return this.newsService.create(dto);
   }
 
   @Get()
@@ -19,16 +21,16 @@ export class NewsController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.newsService.findOne(+id);
+    return this.newsService.findOne(id);
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateNewsDto: UpdateNewsDto) {
-    return this.newsService.update(+id, updateNewsDto);
+  update(@Param('id') id: string, @Body() dto: UpdateNewsDto) {
+    return this.newsService.update(id, dto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.newsService.remove(+id);
+    return this.newsService.remove(id);
   }
 }
