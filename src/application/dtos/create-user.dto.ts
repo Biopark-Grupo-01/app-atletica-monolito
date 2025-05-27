@@ -5,42 +5,66 @@ import {
   IsNotEmpty,
   IsUUID,
   Matches,
+  IsOptional,
+  IsUrl,
+  MaxLength,
 } from 'class-validator';
 
 export class CreateUserDto {
   @IsString()
   @IsNotEmpty()
   @MinLength(3)
+  @MaxLength(100)
   name: string;
 
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  registrationNumber: string;
+  @MaxLength(50)
+  registrationNumber?: string;
 
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
   @Matches(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, {
     message: 'CPF must be in format XXX.XXX.XXX-XX',
   })
-  cpf: string;
+  @MaxLength(14)
+  cpf?: string;
 
   @IsEmail()
   @IsNotEmpty()
+  @MaxLength(255)
   email: string;
 
+  @IsOptional()
   @IsString()
-  @MinLength(6)
-  @IsNotEmpty()
-  password: string;
+  @MinLength(8) // Consider a stronger password policy
+  @MaxLength(100)
+  password?: string;
 
+  @IsOptional() // Made phone optional
   @IsString()
-  @IsNotEmpty()
   @Matches(/^\(\d{2}\)\s\d{4,5}-\d{4}$/, {
     message: 'Phone must be in format (XX) XXXXX-XXXX or (XX) XXXX-XXXX',
   })
-  phone: string;
+  @MaxLength(15)
+  phone?: string;
 
   @IsUUID()
   @IsNotEmpty()
   roleId: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  googleId?: string;
+
+  @IsOptional()
+  @IsUrl()
+  @MaxLength(2048)
+  profilePictureUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(1024) // FCM tokens can be long
+  fcmToken?: string;
 }

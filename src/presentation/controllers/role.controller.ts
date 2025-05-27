@@ -51,7 +51,7 @@ export class RoleController {
   async delete(@Param('id') id: string): Promise<void> {
     const role = await this.roleService.findOne(id);
     if (!role) {
-      throw new NotFoundException('Role not found');
+      throw new NotFoundException('Role not found.');
     }
     await this.roleService.delete(id);
   }

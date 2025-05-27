@@ -8,8 +8,6 @@ import {
 import {
   IRoleRepository,
   ROLE_REPOSITORY_TOKEN,
-  CreateRoleData,
-  UpdateRoleData,
 } from '../../domain/repositories/role.repository.interface';
 import { Role } from '../../domain/entities/role.entity';
 import { CreateRoleDto } from '../dtos/create-role.dto';
@@ -28,7 +26,7 @@ export class RoleService {
       id: role.id,
       name: role.name,
       description: role.description ?? undefined,
-      createdAt: role.getCreatedAt(),
+      createdAt: role.createdAt,
       updatedAt: role.updatedAt,
     };
   }
@@ -47,12 +45,7 @@ export class RoleService {
       );
     }
 
-    const roleData: CreateRoleData = {
-      name: createRoleDto.name,
-      description: createRoleDto.description,
-    };
-
-    const newRole = await this.roleRepository.create(roleData);
+    const newRole = await this.roleRepository.create(createRoleDto);
     return this.mapToResponseDto(newRole);
   }
 
@@ -89,17 +82,17 @@ export class RoleService {
       }
     }
 
-    const updateData: UpdateRoleData = {};
+    const dtoToUpdate: UpdateRoleDto = {};
     if (Object.prototype.hasOwnProperty.call(updateRoleDto, 'name'))
-      updateData.name = updateRoleDto.name;
+      dtoToUpdate.name = updateRoleDto.name;
     if (Object.prototype.hasOwnProperty.call(updateRoleDto, 'description'))
-      updateData.description = updateRoleDto.description;
+      dtoToUpdate.description = updateRoleDto.description;
 
-    if (Object.keys(updateData).length === 0) {
-      throw new BadRequestException('No data provided for update.');
+    if (Object.keys(dtoToUpdate).length === 0) {
+      return this.mapToResponseDto(roleToUpdate);
     }
 
-    const updatedRole = await this.roleRepository.update(id, updateData);
+    const updatedRole = await this.roleRepository.update(id, dtoToUpdate);
     if (!updatedRole) {
       throw new NotFoundException(
         `Role with ID '${id}' not found during update operation.`,
@@ -111,9 +104,7 @@ export class RoleService {
   async delete(id: string): Promise<void> {
     const success = await this.roleRepository.delete(id);
     if (!success) {
-      throw new NotFoundException(
-        `Role with ID '${id}' not found for deletion.`,
-      );
+      throw new BadRequestException(`Role with ID ${id} cold not be deleted.`);
     }
   }
 }

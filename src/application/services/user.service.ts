@@ -9,13 +9,12 @@ import * as bcrypt from 'bcrypt';
 import {
   IUserRepository,
   USER_REPOSITORY_TOKEN,
-  UpdateUserPersistenceData,
 } from '../../domain/repositories/user.repository.interface';
 import {
   IRoleRepository,
   ROLE_REPOSITORY_TOKEN,
 } from '../../domain/repositories/role.repository.interface';
-import { User, UserCreateProps } from '../../domain/entities/user.entity';
+import { User } from '../../domain/entities/user.entity';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { UpdateUserDto } from '../dtos/update-user.dto';
 import { UserResponseDto } from '../dtos/user-response.dto';
@@ -37,13 +36,16 @@ export class UserService {
   }
 
   private mapToResponseDto(user: User): UserResponseDto {
-    const roleDto: RoleResponseDto = {
-      id: user.role.id,
-      name: user.role.name,
-      description: user.role.description ?? undefined,
-      createdAt: user.role.getCreatedAt(),
-      updatedAt: user.role.updatedAt,
-    };
+    const roleDto: RoleResponseDto = user.role
+      ? {
+          id: user.role.id,
+          name: user.role.name,
+          description: user.role.description ?? undefined,
+          createdAt: user.role.createdAt,
+          updatedAt: user.role.updatedAt,
+        }
+      : ({} as RoleResponseDto);
+
     return {
       id: user.id,
       name: user.name,
@@ -52,8 +54,11 @@ export class UserService {
       cpf: user.cpf,
       phone: user.phone,
       role: roleDto,
-      createdAt: user.getCreatedAt(),
+      createdAt: user.createdAt,
       updatedAt: user.updatedAt,
+      googleId: user.googleId,
+      profilePictureUrl: user.profilePictureUrl,
+      fcmToken: user.fcmToken,
     };
   }
 
@@ -62,11 +67,24 @@ export class UserService {
   }
 
   async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
-    if (await this.userRepository.findByEmail(createUserDto.email)) {
+    if (
+      createUserDto.email &&
+      (await this.userRepository.findByEmail(createUserDto.email))
+    ) {
       throw new ConflictException('Email already in use.');
     }
-    if (await this.userRepository.findByCpf(createUserDto.cpf)) {
+    if (
+      createUserDto.cpf &&
+      createUserDto.cpf.length > 0 &&
+      (await this.userRepository.findByCpf(createUserDto.cpf))
+    ) {
       throw new ConflictException('CPF already in use.');
+    }
+    if (
+      createUserDto.googleId &&
+      (await this.userRepository.findByGoogleId(createUserDto.googleId))
+    ) {
+      throw new ConflictException('Google ID already in use.');
     }
 
     const role = await this.roleRepository.findById(createUserDto.roleId);
@@ -76,29 +94,31 @@ export class UserService {
       );
     }
 
-    const hashedPassword = await this.hashPassword(createUserDto.password);
+    const dtoToCreate = { ...createUserDto };
+
+    if (dtoToCreate.password) {
+      dtoToCreate.password = await this.hashPassword(dtoToCreate.password);
+    } else if (!dtoToCreate.googleId) {
+      throw new BadRequestException(
+        'Password is required for non-Google sign-up.',
+      );
+    }
 
     try {
-      const userCreateProps: UserCreateProps = {
-        name: createUserDto.name,
-        registrationNumber: createUserDto.registrationNumber,
-        cpf: createUserDto.cpf,
-        email: createUserDto.email,
-        passwordToHash: createUserDto.password, // Pass raw password, entity takes hashed
-        phone: createUserDto.phone,
-        role: role,
-      };
-      // User.create will validate properties and generate ID
-      const userDomainEntity = User.create(userCreateProps, hashedPassword);
-
-      const savedUser = await this.userRepository.create(userDomainEntity);
+      const savedUser = await this.userRepository.create(dtoToCreate);
       return this.mapToResponseDto(savedUser);
     } catch (error) {
-      // Catch validation errors from User.create or other issues
-      if (error instanceof Error) {
-        throw new BadRequestException(error.message);
+      if (
+        error instanceof ConflictException ||
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
       }
-      throw new BadRequestException('Failed to create user.');
+      throw new BadRequestException(
+        'Failed to create user. ' +
+          (error instanceof Error ? error.message : ''),
+      );
     }
   }
 
@@ -115,6 +135,11 @@ export class UserService {
     return this.mapToResponseDto(user);
   }
 
+  async findByEmail(email: string): Promise<UserResponseDto | null> {
+    const user = await this.userRepository.findByEmail(email);
+    return user ? this.mapToResponseDto(user) : null;
+  }
+
   async update(
     id: string,
     updateUserDto: UpdateUserDto,
@@ -124,49 +149,39 @@ export class UserService {
       throw new NotFoundException(`User with ID '${id}' not found.`);
     }
 
-    const dataToPersist: UpdateUserPersistenceData = {};
+    const dtoToUpdate = { ...updateUserDto };
 
-    if (updateUserDto.name) dataToPersist.name = updateUserDto.name;
-    if (updateUserDto.registrationNumber)
-      dataToPersist.registrationNumber = updateUserDto.registrationNumber;
-    if (updateUserDto.phone) dataToPersist.phone = updateUserDto.phone;
-
-    if (updateUserDto.email && updateUserDto.email !== userToUpdate.email) {
-      if (await this.userRepository.findByEmail(updateUserDto.email)) {
+    if (dtoToUpdate.email && dtoToUpdate.email !== userToUpdate.email) {
+      const existingUser = await this.userRepository.findByEmail(
+        dtoToUpdate.email,
+      );
+      if (existingUser && existingUser.id !== id) {
         throw new ConflictException('New email already in use.');
       }
-      dataToPersist.email = updateUserDto.email;
     }
 
-    if (updateUserDto.password) {
-      dataToPersist.password = await this.hashPassword(updateUserDto.password);
-    }
-
-    if (updateUserDto.roleId && updateUserDto.roleId !== userToUpdate.role.id) {
-      const newRole = await this.roleRepository.findById(updateUserDto.roleId);
-      if (!newRole) {
-        throw new NotFoundException(
-          `New Role with ID '${updateUserDto.roleId}' not found.`,
-        );
+    if (
+      dtoToUpdate.googleId &&
+      dtoToUpdate.googleId !== userToUpdate.googleId
+    ) {
+      const existingUser = await this.userRepository.findByGoogleId(
+        dtoToUpdate.googleId,
+      );
+      if (existingUser && existingUser.id !== id) {
+        throw new ConflictException('New Google ID already in use.');
       }
-      dataToPersist.roleId = newRole.id;
     }
 
-    if (Object.keys(dataToPersist).length === 0) {
-      // Potentially return current user state or throw BadRequest
-      // throw new BadRequestException('No update data provided.');
-      return this.mapToResponseDto(userToUpdate); // Or simply return existing if no changes
+    if (dtoToUpdate.password) {
+      dtoToUpdate.password = await this.hashPassword(dtoToUpdate.password);
+    } else {
+      delete dtoToUpdate.password;
     }
 
-    // Domain entity setters can be called here if you want to run domain validations before persistence call,
-    // but since persistence data is partial, it's simpler to pass to repository.
-    // userToUpdate.setName(updateUserDto.name); // etc. then user.toPersistenceObject()
-    // But this requires fetching the full User entity again after update for the response.
-
-    const updatedUser = await this.userRepository.update(id, dataToPersist);
+    const updatedUser = await this.userRepository.update(id, dtoToUpdate);
     if (!updatedUser) {
       throw new NotFoundException(
-        `User with ID '${id}' could not be updated or was not found during update.`,
+        `User with ID '${id}' could not be updated or was not found post-update.`,
       );
     }
     return this.mapToResponseDto(updatedUser);
@@ -175,9 +190,7 @@ export class UserService {
   async delete(id: string): Promise<void> {
     const success = await this.userRepository.delete(id);
     if (!success) {
-      throw new NotFoundException(
-        `User with ID '${id}' not found for deletion.`,
-      );
+      throw new NotFoundException(`User with ID '${id}' cold not be deleted.`);
     }
   }
 }
