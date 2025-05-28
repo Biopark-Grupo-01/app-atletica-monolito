@@ -13,10 +13,10 @@ async function bootstrap() {
     .setDescription('API para gerenciamento de produtos da Atlética')
     .setVersion('1.0')
     .addTag('products', 'Operações relacionadas a produtos')
+    .addTag('events', 'Operações relacionadas a eventos')
     .build();
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  const document = SwaggerModule.createDocument(app, config)
 
   const configService = app.get(ConfigService);
   const apiPrefix = configService.get<string>('app.apiPrefix');
