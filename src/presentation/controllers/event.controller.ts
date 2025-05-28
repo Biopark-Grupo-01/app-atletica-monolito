@@ -292,26 +292,14 @@ export class EventController {
   @ApiResponse({ status: 404, description: 'Event not found' })
   async delete(
     @Param('id') id: string,
-    @Req() request: Request,
-  ): Promise<HateoasResponse<{
+  ): Promise<{
     success: boolean;
     eventId: string;
     eventTitle: string | null;
-  }>> {
+  }> {
     try {
       const result = await this.eventService.delete(id);
-
-      // Create HATEOAS response
-      const response = new HateoasResponse(result);
-
-      // Base URL for building links
-      const baseUrl = `${request.protocol}://${request.get('host')}`;
-
-      // Add related links
-      response.addLink(`${baseUrl}/events`, 'collection', 'GET');
-      response.addLink(`${baseUrl}/events`, 'create', 'POST');
-
-      return response;
+      return result;
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.NOT_FOUND);
     }
