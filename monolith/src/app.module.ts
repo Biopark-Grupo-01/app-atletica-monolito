@@ -5,6 +5,7 @@ import { UserModule } from './modules/user.module';
 import { RoleModule } from './modules/role.module';
 import { ProductModule } from './modules/product.module';
 import { TrainingModule } from './modules/training.module';
+import { EventModule } from './modules/event.module';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
@@ -16,6 +17,7 @@ import { ConfigModule } from '@nestjs/config';
     RoleModule,
     ProductModule,
     TrainingModule,
+    EventModule,
   ],
   controllers: [],
   providers: [],
