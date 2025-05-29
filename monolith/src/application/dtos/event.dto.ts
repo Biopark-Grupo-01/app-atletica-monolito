@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { EventType } from '../../domain/entities/event.entity';
+import { HateoasLinkDto } from '../../interfaces/http/hateoas-link.dto';
 
 export class CreateEventDto {
   @ApiProperty({ description: 'Event title', example: 'Annual Athletic Party' })
@@ -120,4 +121,10 @@ export class EventResponseDto {
     example: '2025-05-22T10:00:00Z',
   })
   updatedAt: Date;
+
+  @ApiPropertyOptional({
+    description: 'HATEOAS links related to the event',
+    type: () => [HateoasLinkDto], // Adjusted for Swagger, actual type is HateoasLinkDto[]
+  })
+  _links?: HateoasLinkDto[]; // Corrected import name
 }
