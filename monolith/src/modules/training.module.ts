@@ -5,12 +5,14 @@ import { TrainingService } from '../application/services/training.service';
 import { TypeOrmTrainingRepository } from '../infrastructure/typeorm/repositories/typeorm-training.repository';
 import { TRAINING_REPOSITORY_TOKEN } from '../domain/repositories/training.repository.interface';
 import { Training } from '../domain/entities/training.entity';
+import { HateoasService } from '../application/services/hateoas.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Training])],
   controllers: [TrainingController],
   providers: [
     TrainingService,
+    HateoasService,
     {
       provide: TRAINING_REPOSITORY_TOKEN,
       useClass: TypeOrmTrainingRepository,
