@@ -12,7 +12,6 @@ async function bootstrap() {
     .setTitle('API da Atlética')
     .setDescription('API para gerenciamento de produtos da Atlética')
     .setVersion('1.0')
-    .addTag('products', 'Operações relacionadas a produtos')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

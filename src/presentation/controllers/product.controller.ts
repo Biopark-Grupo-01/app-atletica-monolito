@@ -6,11 +6,16 @@ import {
   Delete,
   Body,
   Param,
-  HttpException,
   HttpStatus,
-  Req,
   NotFoundException,
+  Res,
 } from '@nestjs/common';
+import { ProductService } from '../../application/services/product.service';
+import {
+  CreateProductDto,
+  UpdateProductDto,
+  ProductResponseDto,
+} from '../../application/dtos/product.dto';
 import {
   ApiTags,
   ApiOperation,
@@ -18,205 +23,267 @@ import {
   ApiParam,
   ApiBody,
 } from '@nestjs/swagger';
-import { ProductService } from '../../application/services/product.service';
 import {
-  CreateProductDto,
-  UpdateProductDto,
-  ProductResponseDto,
-} from '../../application/dtos/product.dto';
-import { Request } from 'express';
-import { HateoasResponse } from '../../interfaces/http/hateoas.link';
+  SuccessResponse,
+  ErrorResponse,
+  ApiResponse as CustomApiResponse,
+} from '../../interfaces/http/response.interface';
+import { Response } from 'express';
+import { HateoasService } from '../../application/services/hateoas.service';
+import { HateoasLinkDto } from '../../interfaces/http/hateoas-link.dto';
 
-@ApiTags('products')
+@ApiTags('Products')
 @Controller('products')
 export class ProductController {
-  constructor(private readonly productService: ProductService) {}
-
-  @Get()
-  @ApiOperation({
-    summary: 'Listar todos os produtos',
-    description: 'Retorna uma lista de todos os produtos disponíveis',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Lista de produtos recuperada com sucesso',
-    type: [ProductResponseDto],
-  })
-  async findAll(
-    @Req() request: Request,
-  ): Promise<HateoasResponse<ProductResponseDto[]>> {
-    const products = await this.productService.findAll();
-
-    const response = new HateoasResponse(products);
-
-    const baseUrl = `${request.protocol}://${request.get('host')}`;
-
-    response.addLink(`${baseUrl}/products`, 'self', 'GET');
-
-    response.addLink(`${baseUrl}/products`, 'create', 'POST');
-
-    products.forEach((product) => {
-      response.addLink(
-        `${baseUrl}/products/${product.id}`,
-        `product_${product.id}`,
-        'GET',
-      );
-    });
-
-    return response;
-  }
-
-  @Get(':id')
-  @ApiOperation({
-    summary: 'Buscar um produto por ID',
-    description: 'Retorna um produto específico com base no ID fornecido',
-  })
-  @ApiParam({
-    name: 'id',
-    description: 'ID do produto',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Produto encontrado com sucesso',
-    type: ProductResponseDto,
-  })
-  @ApiResponse({ status: 404, description: 'Produto não encontrado' })
-  async findById(
-    @Param('id') id: string,
-    @Req() request: Request,
-  ): Promise<HateoasResponse<ProductResponseDto>> {
-    try {
-      const product = await this.productService.findById(id);
-
-      const response = new HateoasResponse(product);
-
-      const baseUrl = `${request.protocol}://${request.get('host')}`;
-
-      response.addLink(`${baseUrl}/products/${id}`, 'self', 'GET');
-
-      response.addLink(`${baseUrl}/products`, 'collection', 'GET');
-
-      response.addLink(`${baseUrl}/products/${id}`, 'update', 'PUT');
-
-      response.addLink(`${baseUrl}/products/${id}`, 'delete', 'DELETE');
-
-      return response;
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
-      }
-      throw new HttpException(
-        'An unexpected error occurred',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
+  constructor(
+    private readonly productService: ProductService,
+    private readonly hateoasService: HateoasService,
+  ) {}
 
   @Post()
-  @ApiOperation({
-    summary: 'Criar um novo produto',
-    description: 'Cria um novo produto com os dados fornecidos',
-  })
-  @ApiBody({
-    type: CreateProductDto,
-    description: 'Dados para criação do produto',
-  })
+  @ApiOperation({ summary: 'Create a new product' })
+  @ApiBody({ type: CreateProductDto })
   @ApiResponse({
     status: 201,
-    description: 'Produto criado com sucesso',
-    type: ProductResponseDto,
+    description: 'The product has been successfully created.',
+    type: SuccessResponse,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request.',
+    type: ErrorResponse,
   })
   async create(
     @Body() createProductDto: CreateProductDto,
-    @Req() request: Request,
-  ): Promise<HateoasResponse<ProductResponseDto>> {
-    const product = await this.productService.create(createProductDto);
+    @Res() res: Response,
+  ): Promise<Response<CustomApiResponse<ProductResponseDto>>> {
+    try {
+      const product = await this.productService.create(createProductDto);
+      const productWithLinks = this.hateoasService.addLinksToItem(
+        product,
+        'products',
+      );
+      return res
+        .status(HttpStatus.CREATED)
+        .json(
+          new SuccessResponse<ProductResponseDto>(
+            HttpStatus.CREATED,
+            productWithLinks,
+            'Product created successfully',
+          ),
+        );
+    } catch (error) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json(
+          new ErrorResponse(
+            HttpStatus.BAD_REQUEST,
+            'Error creating product',
+            error.message as string,
+            error.stack as string,
+          ),
+        );
+    }
+  }
 
-    const response = new HateoasResponse(product);
+  @Get()
+  @ApiOperation({ summary: 'Get all products' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return all products.',
+    type: SuccessResponse,
+  })
+  async findAll(
+    @Res() res: Response,
+  ): Promise<Response<CustomApiResponse<ProductResponseDto[]>>> {
+    try {
+      const products = await this.productService.findAll();
+      const productsWithLinks = this.hateoasService.addLinksToCollection(
+        products,
+        'products',
+      );
+      const collectionLinks =
+        this.hateoasService.createLinksForCollection('products');
+      return res
+        .status(HttpStatus.OK)
+        .json(
+          new SuccessResponse<ProductResponseDto[]>(
+            HttpStatus.OK,
+            productsWithLinks,
+            'Products retrieved successfully',
+            collectionLinks,
+          ),
+        );
+    } catch (error) {
+      return res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json(
+          new ErrorResponse(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            'Error retrieving products',
+            error.message as string,
+            error.stack as string,
+          ),
+        );
+    }
+  }
 
-    const baseUrl = `${request.protocol}://${request.get('host')}`;
-
-    response.addLink(`${baseUrl}/products/${product.id}`, 'self', 'GET');
-
-    response.addLink(`${baseUrl}/products`, 'collection', 'GET');
-
-    response.addLink(`${baseUrl}/products/${product.id}`, 'update', 'PUT');
-
-    response.addLink(`${baseUrl}/products/${product.id}`, 'delete', 'DELETE');
-
-    return response;
+  @Get(':id')
+  @ApiOperation({ summary: 'Get a product by ID' })
+  @ApiParam({ name: 'id', description: 'Product ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return the product.',
+    type: SuccessResponse,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Product not found.',
+    type: ErrorResponse,
+  })
+  async findOne(
+    @Param('id') id: string,
+    @Res() res: Response,
+  ): Promise<Response<CustomApiResponse<ProductResponseDto>>> {
+    try {
+      const product = await this.productService.findById(id);
+      const productWithLinks = this.hateoasService.addLinksToItem(
+        product,
+        'products',
+      );
+      return res
+        .status(HttpStatus.OK)
+        .json(
+          new SuccessResponse<ProductResponseDto>(
+            HttpStatus.OK,
+            productWithLinks,
+            'Product retrieved successfully',
+          ),
+        );
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        return res
+          .status(HttpStatus.NOT_FOUND)
+          .json(new ErrorResponse(HttpStatus.NOT_FOUND, error.message));
+      }
+      return res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json(
+          new ErrorResponse(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            'Error retrieving product',
+            error.message as string,
+            error.stack as string,
+          ),
+        );
+    }
   }
 
   @Put(':id')
-  @ApiOperation({
-    summary: 'Atualizar um produto',
-    description: 'Atualiza os dados de um produto existente',
-  })
-  @ApiParam({
-    name: 'id',
-    description: 'ID do produto',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
-  @ApiBody({
-    type: UpdateProductDto,
-    description: 'Dados para atualização do produto',
-  })
+  @ApiOperation({ summary: 'Update a product' })
+  @ApiParam({ name: 'id', description: 'Product ID' })
+  @ApiBody({ type: UpdateProductDto })
   @ApiResponse({
     status: 200,
-    description: 'Produto atualizado com sucesso',
-    type: ProductResponseDto,
+    description: 'The product has been successfully updated.',
+    type: SuccessResponse,
   })
-  @ApiResponse({ status: 404, description: 'Produto não encontrado' })
+  @ApiResponse({
+    status: 404,
+    description: 'Product not found.',
+    type: ErrorResponse,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request.',
+    type: ErrorResponse,
+  })
   async update(
     @Param('id') id: string,
     @Body() updateProductDto: UpdateProductDto,
-    @Req() request: Request,
-  ): Promise<HateoasResponse<ProductResponseDto>> {
+    @Res() res: Response,
+  ): Promise<Response<CustomApiResponse<ProductResponseDto>>> {
     try {
       const product = await this.productService.update(id, updateProductDto);
-
-      const response = new HateoasResponse(product);
-
-      const baseUrl = `${request.protocol}://${request.get('host')}`;
-
-      response.addLink(`${baseUrl}/products/${id}`, 'self', 'GET');
-
-      response.addLink(`${baseUrl}/products`, 'collection', 'GET');
-
-      response.addLink(`${baseUrl}/products/${id}`, 'update', 'PUT');
-
-      response.addLink(`${baseUrl}/products/${id}`, 'delete', 'DELETE');
-
-      return response;
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
-      }
-      throw new HttpException(
-        'An unexpected error occurred',
-        HttpStatus.INTERNAL_SERVER_ERROR,
+      const productWithLinks = this.hateoasService.addLinksToItem(
+        product,
+        'products',
       );
+      return res
+        .status(HttpStatus.OK)
+        .json(
+          new SuccessResponse<ProductResponseDto>(
+            HttpStatus.OK,
+            productWithLinks,
+            'Product updated successfully',
+          ),
+        );
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        return res
+          .status(HttpStatus.NOT_FOUND)
+          .json(new ErrorResponse(HttpStatus.NOT_FOUND, error.message));
+      }
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json(
+          new ErrorResponse(
+            HttpStatus.BAD_REQUEST,
+            'Error updating product',
+            error.message as string,
+            error.stack as string,
+          ),
+        );
     }
   }
 
   @Delete(':id')
-  @ApiOperation({
-    summary: 'Excluir um produto',
-    description: 'Exclui um produto com base no ID fornecido',
+  @ApiOperation({ summary: 'Delete a product' })
+  @ApiParam({ name: 'id', description: 'Product ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'The product has been successfully deleted.',
+    type: SuccessResponse,
   })
-  @ApiParam({
-    name: 'id',
-    description: 'ID do produto',
-    example: '123e4567-e89b-12d3-a456-426614174000',
+  @ApiResponse({
+    status: 404,
+    description: 'Product not found.',
+    type: ErrorResponse,
   })
-  @ApiResponse({ status: 204, description: 'Produto excluído com sucesso' })
-  @ApiResponse({ status: 404, description: 'Produto não encontrado' })
-  async delete(@Param('id') id: string): Promise<void> {
-    const product = await this.productService.findById(id);
-    if (!product) {
-      throw new NotFoundException('Product not found.');
+  async remove(
+    @Param('id') id: string,
+    @Res() res: Response,
+  ): Promise<Response<CustomApiResponse<void>>> {
+    try {
+      await this.productService.delete(id);
+      const links: HateoasLinkDto[] =
+        this.hateoasService.createLinksForCollection('products');
+      return res
+        .status(HttpStatus.OK)
+        .json(
+          new SuccessResponse<void>(
+            HttpStatus.OK,
+            undefined,
+            'Product deleted successfully',
+            links,
+          ),
+        );
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        return res
+          .status(HttpStatus.NOT_FOUND)
+          .json(new ErrorResponse(HttpStatus.NOT_FOUND, error.message));
+      }
+      return res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json(
+          new ErrorResponse(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            'Error deleting product',
+            error.message as string,
+            error.stack as string,
+          ),
+        );
     }
-    await this.productService.delete(id);
   }
 }

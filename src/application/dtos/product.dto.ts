@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { HateoasLinkDto } from '../../interfaces/http/hateoas-link.dto';
 
 export class CreateProductDto {
   @ApiProperty({
@@ -76,4 +77,10 @@ export class ProductResponseDto {
     example: '2025-05-22T10:00:00Z',
   })
   updatedAt: Date;
+
+  @ApiPropertyOptional({
+    description: 'Links HATEOAS para o produto',
+    type: [HateoasLinkDto], // Corrected to use the DTO
+  })
+  _links?: HateoasLinkDto[];
 }
