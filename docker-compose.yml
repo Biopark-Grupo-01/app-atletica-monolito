@@ -1,41 +1,37 @@
-version: '3'
+version: '3.8'
 
 services:
+  db:
+    image: mysql:8.0
+    restart: always
+    container_name: mysql-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: appdb
+      MYSQL_USER: user
+      MYSQL_PASSWORD: pass
+    ports:
+      - "3306:3306"
+    networks:
+      - app-network
+
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: .
+    container_name: nest-app
+    restart: always
     ports:
-      - '3001:3001'
-    environment:
-      - NODE_ENV=production
-      - PORT=3001
-      - DATABASE_HOST=postgres
-      - DATABASE_PORT=5432
-      - DATABASE_USERNAME=postgres
-      - DATABASE_PASSWORD=postgres123
-      - DATABASE_NAME=atletica
-    restart: unless-stopped
+      - "3000:3000"
     depends_on:
-      postgres:
-        condition: service_healthy
-
-  postgres:
-    image: postgres:15-alpine
+      - db
     environment:
-      - POSTGRES_PASSWORD=postgres123
-      - POSTGRES_USER=postgres
-      - POSTGRES_DB=atletica
-    ports:
-      - '5432:5432'
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres']
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USERNAME: user
+      DB_PASSWORD: pass
+      DB_DATABASE: appdb
+    networks:
+      - app-network
 
-volumes:
-  postgres_data:
+networks:
+  app-network:
+    driver: bridge

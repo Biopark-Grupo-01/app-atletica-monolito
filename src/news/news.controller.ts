@@ -1,6 +1,12 @@
-/* eslint-disable prettier/prettier */
-
-import { Controller, Post, Get, Param, Put, Delete, Body } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Param,
+  Put,
+  Delete,
+  Body,
+} from '@nestjs/common';
 import { NewsService } from './news.service';
 import { CreateNewsDto } from './dto/create-news.dto';
 import { UpdateNewsDto } from './dto/update-news.dto';
