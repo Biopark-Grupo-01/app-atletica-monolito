@@ -6,7 +6,12 @@ import { NewsController } from './news.controller';
 
 @Module({
   imports: [TypeOrmModule.forFeature([News])],
-  providers: [NewsService],
   controllers: [NewsController],
+  providers: [
+    NewsService,
+    HateoasService,
+    { provide: NEWS_REPOSITORY, useClass: TypeOrmNewsRepository },
+  ],
+  exports: [NewsService],
 })
 export class NewsModule {}

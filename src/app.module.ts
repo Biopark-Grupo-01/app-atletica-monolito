@@ -7,7 +7,7 @@ import { Module } from '@nestjs/common';
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: process.env.DB_HOST,
-      port: 3306,
+      port: 3001,
       username: process.env.DB_USERNAME, // user
       password: process.env.DB_PASSWORD, // pass
       database: process.env.DB_DATABASE, // appdb
@@ -18,3 +18,21 @@ import { Module } from '@nestjs/common';
   ],
 })
 export class AppModule {}
+
+/* 
+
+imports: [
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
+    AppConfigModule,
+    DatabaseModule,
+    UserModule,
+    RoleModule,
+    ProductModule,
+    TrainingModule,
+    EventModule,
+  ],
+  controllers: [],
+  providers: [],
+})
+
+*/
