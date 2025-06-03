@@ -7,7 +7,7 @@ import {
   Delete,
   Body,
 } from '@nestjs/common';
-import { NewsService } from './news.service';
+import { NewsService } from '../application/services/news.service';
 import { CreateNewsDto } from './dto/create-news.dto';
 import { UpdateNewsDto } from './dto/update-news.dto';
 
