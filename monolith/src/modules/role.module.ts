@@ -5,12 +5,14 @@ import { RoleService } from '../application/services/role.service';
 import { TypeOrmRoleRepository } from '../infrastructure/typeorm/repositories/typeorm-role.repository';
 import { ROLE_REPOSITORY_TOKEN } from '../domain/repositories/role.repository.interface';
 import { Role } from '../domain/entities/role.entity';
+import { HateoasService } from '../application/services/hateoas.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Role])],
   controllers: [RoleController],
   providers: [
     RoleService,
+    HateoasService,
     {
       provide: ROLE_REPOSITORY_TOKEN,
       useClass: TypeOrmRoleRepository,
