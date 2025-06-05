@@ -5,6 +5,7 @@ import { TrainingModalityService } from '../application/services/training-modali
 import { TypeOrmTrainingModalityRepository } from '../infrastructure/typeorm/repositories/typeorm-training_modality.repository';
 import { MODALITY_REPOSITORY_TOKEN } from '../domain/repositories/training-modality.repository.interface';
 import { TrainingModality } from '../domain/entities/training-modality.entity';
+import { HateoasService } from '@app/application/services/hateoas.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([TrainingModality])],
@@ -15,6 +16,7 @@ import { TrainingModality } from '../domain/entities/training-modality.entity';
       provide: MODALITY_REPOSITORY_TOKEN,
       useClass: TypeOrmTrainingModalityRepository,
     },
+    HateoasService,
   ],
   exports: [TrainingModalityService, MODALITY_REPOSITORY_TOKEN],
 })
