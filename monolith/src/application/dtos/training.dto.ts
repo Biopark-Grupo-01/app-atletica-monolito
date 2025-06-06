@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { HateoasLinkDto } from '../../interfaces/http/hateoas-link.dto';
 
 export class CreateTrainingDto {
   @ApiProperty({ description: 'Título do treino', example: 'Treino Funcional' })
@@ -128,4 +128,10 @@ export class TrainingResponseDto {
     example: '2025-05-22T10:00:00Z',
   })
   updated_at: Date;
+
+  @ApiPropertyOptional({
+    description: 'Links HATEOAS',
+    type: () => [HateoasLinkDto],
+  })
+  _links?: HateoasLinkDto[];
 }
