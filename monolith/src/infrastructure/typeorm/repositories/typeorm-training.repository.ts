@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { Training } from '../../../domain/entities/training.entity';
 import { ITrainingRepository } from '../../../domain/repositories/training.repository.interface';
 import {
-  CreateTrainingDto,
+  // CreateTrainingDto,
   UpdateTrainingDto,
 } from '../../../application/dtos/training.dto';
 
@@ -23,8 +23,8 @@ export class TypeOrmTrainingRepository implements ITrainingRepository {
     return this.ormRepository.findOneBy({ id });
   }
 
-  async create(createTrainingDto: CreateTrainingDto): Promise<Training> {
-    const newTraining = this.ormRepository.create(createTrainingDto);
+  async create(training: Training): Promise<Training> {
+    const newTraining = this.ormRepository.create(training);
     return this.ormRepository.save(newTraining);
   }
 
