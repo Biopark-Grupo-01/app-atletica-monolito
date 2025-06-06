@@ -22,7 +22,7 @@ export class TrainingModality {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp with time zone' })
   updatedAt: Date;
 
-  @OneToMany(() => Training, (training) => training.modality)
+  @OneToMany(() => Training, (training) => training.trainingModality)
   trainings: Training[];
 
   constructor(partial: Partial<TrainingModality>) {
