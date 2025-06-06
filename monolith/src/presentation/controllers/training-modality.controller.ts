@@ -31,6 +31,7 @@ import {
 } from '../../interfaces/http/response.interface';
 // import { HateoasLinkDto } from '../../interfaces/http/hateoas-link.dto';
 
+
 @ApiTags('Training Modalities')
 @Controller('training-modalities')
 export class TrainingModalityController {
