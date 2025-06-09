@@ -7,6 +7,7 @@ import { EventModule } from './modules/event.module';
 import { ConfigModule } from '@nestjs/config';
 import { UserModule } from './modules/user.module';
 import { RoleModule } from './modules/role.module';
+import { MicroservicesModule } from './modules/microservices/microservices.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { RoleModule } from './modules/role.module';
     EventModule,
     UserModule,
     RoleModule,
+    MicroservicesModule,
   ],
   controllers: [],
   providers: [],
