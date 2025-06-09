@@ -7,6 +7,7 @@ import { ProductModule } from './modules/product.module';
 import { TrainingModule } from './modules/training.module';
 import { EventModule } from './modules/event.module';
 import { ConfigModule } from '@nestjs/config';
+import { MicroservicesModule } from './modules/microservices/microservices.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ConfigModule } from '@nestjs/config';
     ProductModule,
     TrainingModule,
     EventModule,
+    MicroservicesModule,
   ],
   controllers: [],
   providers: [],

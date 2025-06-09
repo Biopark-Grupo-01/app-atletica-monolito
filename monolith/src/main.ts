@@ -29,7 +29,10 @@ async function bootstrap() {
     app.setGlobalPrefix(apiPrefix);
   }
 
-  const port = configService.get<number>('app.port') || 3001;
-  await app.listen(port);
+const port = configService.get<number>('app.port') || 3001;
+console.log(`==============================================`);
+console.log(`Monolith service running on port: ${port}`);
+console.log(`==============================================`);
+await app.listen(port);
 }
 void bootstrap();
