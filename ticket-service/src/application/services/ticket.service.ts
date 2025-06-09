@@ -19,6 +19,7 @@ export class TicketService {
     private readonly configService: ConfigService,
   ) {
     this.monolithServiceUrl = this.configService.get<string>('MONOLITH_SERVICE_URL');
+    console.log(`Monolith service URL configured as: ${this.monolithServiceUrl}`);
   }
 
   async findAll(): Promise<TicketResponseDto[]> {
@@ -37,12 +38,15 @@ export class TicketService {
   }
 
   async findByEventId(eventId: string): Promise<TicketResponseDto[]> {
-    // Verificar se o evento existe no monolito
+    // Verificar se o evento existe no monolito usando o novo endpoint com prefixo /api
     try {
-      await firstValueFrom(
-        this.httpService.get(`${this.monolithServiceUrl}/api/events/${eventId}`)
+      console.log(`Verificando evento ${eventId} no monolith: ${this.monolithServiceUrl}/api/microservices/events/exists/${eventId}`);
+      const response = await firstValueFrom(
+        this.httpService.get(`${this.monolithServiceUrl}/api/microservices/events/exists/${eventId}`)
       );
+      console.log(`Evento ${eventId} encontrado no monolith: ${response.data.title}`);
     } catch (error) {
+      console.error(`Erro ao verificar evento ${eventId}:`, error.message);
       throw new NotFoundException(`Event with ID ${eventId} not found`);
     }
 
@@ -51,12 +55,15 @@ export class TicketService {
   }
 
   async findByUserId(userId: string): Promise<TicketResponseDto[]> {
-    // Verificar se o usuário existe no monolito
+    // Verificar se o usuário existe no monolito usando o novo endpoint com prefixo /api
     try {
+      console.log(`Verificando usuário ${userId} no monolith: ${this.monolithServiceUrl}/api/microservices/users/exists/${userId}`);
       await firstValueFrom(
-        this.httpService.get(`${this.monolithServiceUrl}/api/users/${userId}`)
+        this.httpService.get(`${this.monolithServiceUrl}/api/microservices/users/exists/${userId}`)
       );
+      console.log(`Usuário ${userId} encontrado no monolith`);
     } catch (error) {
+      console.error(`Erro ao verificar usuário ${userId}:`, error.message);
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
 
@@ -65,17 +72,29 @@ export class TicketService {
   }
 
   async findAvailableByEventId(eventId: string): Promise<TicketResponseDto[]> {
+    // Verificar se o evento existe
+    try {
+      await firstValueFrom(
+        this.httpService.get(`${this.monolithServiceUrl}/api/microservices/events/exists/${eventId}`)
+      );
+    } catch (error) {
+      throw new NotFoundException(`Event with ID ${eventId} not found`);
+    }
+    
     const tickets = await this.ticketRepository.findAvailableByEventId(eventId);
     return tickets.map(ticket => this.mapToDto(ticket));
   }
 
   async create(createTicketDto: CreateTicketDto): Promise<TicketResponseDto> {
-    // Verificar se o evento existe no monolito
+    // Verificar se o evento existe no monolito usando o novo endpoint com prefixo /api
     try {
-      await firstValueFrom(
-        this.httpService.get(`${this.monolithServiceUrl}/api/events/${createTicketDto.eventId}`)
+      console.log(`Verificando evento ${createTicketDto.eventId} para criação de ticket: ${this.monolithServiceUrl}/api/microservices/events/exists/${createTicketDto.eventId}`);
+      const response = await firstValueFrom(
+        this.httpService.get(`${this.monolithServiceUrl}/api/microservices/events/exists/${createTicketDto.eventId}`)
       );
+      console.log(`Evento ${createTicketDto.eventId} (${response.data.title}) encontrado no monolith`);
     } catch (error) {
+      console.error(`Erro ao verificar evento ${createTicketDto.eventId}:`, error.message);
       throw new NotFoundException(`Event with ID ${createTicketDto.eventId} not found`);
     }
 
@@ -98,7 +117,7 @@ export class TicketService {
     if (updateTicketDto.eventId && updateTicketDto.eventId !== existingTicket.eventId) {
       try {
         await firstValueFrom(
-          this.httpService.get(`${this.monolithServiceUrl}/api/events/${updateTicketDto.eventId}`)
+          this.httpService.get(`${this.monolithServiceUrl}/api/microservices/events/exists/${updateTicketDto.eventId}`)
         );
       } catch (error) {
         throw new NotFoundException(`Event with ID ${updateTicketDto.eventId} not found`);
@@ -128,7 +147,7 @@ export class TicketService {
     
     try {
       await firstValueFrom(
-        this.httpService.get(`${this.monolithServiceUrl}/api/users/${userId}`)
+        this.httpService.get(`${this.monolithServiceUrl}/api/microservices/users/exists/${userId}`)
       );
     } catch (error) {
       throw new NotFoundException(`User with ID ${userId} not found`);
@@ -148,7 +167,7 @@ export class TicketService {
     
     try {
       await firstValueFrom(
-        this.httpService.get(`${this.monolithServiceUrl}/api/users/${userId}`)
+        this.httpService.get(`${this.monolithServiceUrl}/api/microservices/users/exists/${userId}`)
       );
     } catch (error) {
       throw new NotFoundException(`User with ID ${userId} not found`);

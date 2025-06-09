@@ -1,4 +1,4 @@
-import { IsDecimal, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsUUID, IsNumber } from 'class-validator';
 
 export class CreateTicketDto {
   @IsNotEmpty()
@@ -10,7 +10,7 @@ export class CreateTicketDto {
   description?: string;
 
   @IsNotEmpty()
-  @IsDecimal({ decimal_digits: '2' })
+  @IsNumber()
   price: number;
 
   @IsNotEmpty()
