@@ -1,22 +1,58 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
-@Entity()
+export enum NewsType {
+  LOCAL = 'local',
+  NATIONAL = 'national',
+  INTERNATIONAL = 'international',
+  SPORTS = 'sports',
+  ENTERTAINMENT = 'entertainment',
+  OTHER = 'other',
+}
+
+@Entity('news')
 export class News {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column()
-  image: string;
-
-  @Column()
   title: string;
 
-  @Column({ type: 'date' })
-  date: Date;
+  @Column()
+  description: string;
+
+  @Column({ type: 'timestamp' })
+  publicationDate: Date;
 
   @Column()
-  location: string;
+  author: string;
 
-  @Column({ type: 'text' })
-  description: string;
+  @Column({
+    type: 'enum',
+    enum: NewsType,
+    default: NewsType.OTHER,
+  })
+  type: NewsType;
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
+
+  constructor(partial: Partial<News>) {
+    Object.assign(this, partial);
+  }
+
+  updatePublicationDate(date: Date): void {
+    if (date > new Date()) {
+      throw new Error('Publication date cannot be in the future');
+    }
+    this.publicationDate = date;
+  }
 }

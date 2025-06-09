@@ -7,9 +7,9 @@ import {
   Delete,
   Body,
 } from '@nestjs/common';
-import { NewsService } from '../application/services/news.service';
-import { CreateNewsDto } from './dto/create-news.dto';
-import { UpdateNewsDto } from './dto/update-news.dto';
+import { NewsService } from 'src/application/services/news.service';
+import { CreateNewsDto } from 'src/application/dto/create-news.dto';
+import { UpdateNewsDto } from 'src/application/dto/update-news.dto';
 
 @Controller('news')
 export class NewsController {
