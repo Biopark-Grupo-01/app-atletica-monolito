@@ -13,11 +13,11 @@ export class Role {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
+  @Column({ type: 'varchar', length: 50, unique: true })
   name: string;
 
-  @Column({ type: 'text', nullable: true }) // Ensure description is text
-  description: string | null; // Allow null
+  @Column({ type: 'text', nullable: true })
+  description: string | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
   createdAt: Date;
@@ -27,8 +27,4 @@ export class Role {
 
   @OneToMany(() => User, (user) => user.role)
   users: User[];
-
-  constructor(partial: Partial<Role>) {
-    Object.assign(this, partial);
-  }
 }

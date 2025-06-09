@@ -9,19 +9,6 @@ import {
 } from 'typeorm';
 import { Role } from './role.entity';
 
-export interface UserCreateProps {
-  name: string;
-  registrationNumber?: string;
-  cpf?: string;
-  email: string;
-  hashedPassword?: string;
-  phone?: string;
-  role: Role;
-  googleId?: string;
-  profilePictureUrl?: string;
-  fcmToken?: string;
-}
-
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -30,27 +17,47 @@ export class User {
   @Column()
   name: string;
 
-  @Column({ name: 'registration_number', nullable: true })
-  registrationNumber?: string;
-
   @Column({ nullable: true })
   cpf?: string;
 
   @Column({ unique: true })
   email: string;
 
-  @Column({ name: 'hashed_password', nullable: true })
-  hashedPassword?: string;
+  @Column({ nullable: true })
+  password: string;
 
   @Column({ nullable: true })
   phone?: string;
 
-  @ManyToOne(() => Role, (role) => role.users, { eager: true })
-  @JoinColumn({ name: 'role_id' })
-  role: Role;
+  @Column({ name: 'profile_picture_url', nullable: true, type: 'text' })
+  profilePicture?: string;
 
-  @Column({ name: 'role_id' })
-  roleId: string;
+  @Column({ name: 'google_id', nullable: true, unique: true })
+  googleId?: string;
+
+  @Column({ name: 'fcm_token', nullable: true, type: 'text' })
+  fcmToken?: string;
+
+  @ManyToOne(() => Role, (role) => role.users, { nullable: true })
+  @JoinColumn({ name: 'role_id' })
+  role?: Role;
+
+  @Column({ name: 'role_id', nullable: true })
+  roleId?: string;
+
+  @Column({
+    name: 'plan_start_date',
+    type: 'timestamp with time zone',
+    nullable: true,
+  })
+  planStartDate?: Date;
+
+  @Column({
+    name: 'plan_end_date',
+    type: 'timestamp with time zone',
+    nullable: true,
+  })
+  planEndDate?: Date;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
   createdAt: Date;
@@ -58,21 +65,6 @@ export class User {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp with time zone' })
   updatedAt: Date;
 
-  @Column({ name: 'google_id', nullable: true, unique: true })
-  googleId?: string;
-
-  @Column({ name: 'profile_picture_url', nullable: true, type: 'text' })
-  profilePictureUrl?: string;
-
-  @Column({ name: 'fcm_token', nullable: true, type: 'text' })
-  fcmToken?: string;
-
-  constructor(partial: Partial<User>) {
-    if (partial) {
-      Object.assign(this, partial);
-      if (partial.role && !partial.roleId) {
-        this.roleId = partial.role.id;
-      }
-    }
-  }
+  @Column({ default: false })
+  isDeleted: boolean;
 }
