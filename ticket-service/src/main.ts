@@ -11,7 +11,9 @@ async function bootstrap() {
   
   const port = process.env.PORT || 3002;
   await app.listen(port);
-  console.log(`Ticket microservice running on port ${port}`);
+  console.log(`==============================================`);
+  console.log(`Ticket service running on port: ${port}`);
+  console.log(`==============================================`);
 }
 
 bootstrap();
