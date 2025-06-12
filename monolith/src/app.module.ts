@@ -5,6 +5,7 @@ import { UserModule } from './modules/user.module';
 import { RoleModule } from './modules/role.module';
 import { ProductModule } from './modules/product.module';
 import { TrainingModule } from './modules/training.module';
+import { TrainingUserModule } from './modules/training-user.module';
 import { EventModule } from './modules/event.module';
 import { ConfigModule } from '@nestjs/config';
 import { MicroservicesModule } from './modules/microservices/microservices.module';
@@ -18,6 +19,7 @@ import { MicroservicesModule } from './modules/microservices/microservices.modul
     RoleModule,
     ProductModule,
     TrainingModule,
+    TrainingUserModule,
     EventModule,
     MicroservicesModule,
   ],
