@@ -1,41 +1,67 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { News } from '../../domain/entities/news.entity';
-import { CreateNewsDto } from '../dto/create-news.dto';
-import { UpdateNewsDto } from '../dto/update-news.dto';
+import { Injectable, NotFoundException, Inject } from '@nestjs/common';
+import { News } from 'src/domain/entities/news.entity';
+import {
+  NewsRepository,
+  NEWS_REPOSITORY,
+} from 'src/domain/repositories/news.repository.interface';
+import { CreateNewsDto, UpdateNewsDto } from 'src/application/dto/news.dto';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class NewsService {
   constructor(
-    @InjectRepository(News)
-    private newsRepository: Repository<News>,
+    @Inject(NEWS_REPOSITORY)
+    private newsRepository: NewsRepository,
   ) {}
 
-  async create(dto: CreateNewsDto): Promise<News> {
-    const news = this.newsRepository.create(dto);
-    return this.newsRepository.save(news);
-  }
-
   async findAll(): Promise<News[]> {
-    return this.newsRepository.find();
+    return this.newsRepository.findAll();
   }
 
-  async findOne(id: string): Promise<News> {
-    const news = await this.newsRepository.findOne({ where: { id } });
-    if (!news) throw new NotFoundException('Notícia não encontrada');
+  async findById(id: string): Promise<News> {
+    const news = await this.newsRepository.findById(id);
+    if (!news) {
+      throw new NotFoundException(`News with ID ${id} not found`);
+    }
     return news;
   }
 
-  async update(id: string, dto: UpdateNewsDto): Promise<News> {
-    const news = await this.findOne(id);
-    const updated = Object.assign(news, dto);
-    return this.newsRepository.save(updated);
+  async create(createNewsDto: CreateNewsDto): Promise<News> {
+    const news = new News({
+      id: uuidv4(),
+      ...createNewsDto,
+    });
+
+    return this.newsRepository.create(news);
   }
 
-  async remove(id: string): Promise<void> {
+  async update(id: string, updateNewsDto: UpdateNewsDto): Promise<News> {
+    const news = await this.newsRepository.findById(id);
+    if (!news) {
+      throw new NotFoundException(`News with ID ${id} not found`);
+    }
+
+    const updatedNews = await this.newsRepository.update(id, updateNewsDto);
+    if (!updatedNews) {
+      throw new NotFoundException(`Failed to update news with ID ${id}`);
+    }
+
+    return updatedNews;
+  }
+
+  async delete(
+    id: string,
+  ): Promise<{ success: boolean; newsId: string; newsTitle: string | null }> {
+    const news = await this.newsRepository.findById(id);
+    if (!news) {
+      throw new NotFoundException(`News with ID ${id} not found`);
+    }
+
     const result = await this.newsRepository.delete(id);
-    if (result.affected === 0)
-      throw new NotFoundException('Notícia não encontrada');
+    return {
+      success: result.success,
+      newsId: id,
+      newsTitle: result.news?.title || null,
+    };
   }
 }

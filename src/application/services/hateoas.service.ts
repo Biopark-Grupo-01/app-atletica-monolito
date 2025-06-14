@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { HateoasLinkDto } from '../../interfaces/http/hateoas-link.dto';
+import { HateoasLinkDto } from 'src/interfaces/http/hateoas-link.dto';
 
 @Injectable()
 export class HateoasService {

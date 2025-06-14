@@ -1,69 +1,37 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
-import { News, NewsType } from '../../../domain/entities/news.entity';
-import { NewsRepository } from 'src/domain/repositories/news.repository';
+import { InjectRepository } from '@nestjs/typeorm';
+import { News } from 'src/domain/entities/news.entity';
+import { NewsRepository } from 'src/domain/repositories/news.repository.interface';
 
 @Injectable()
 export class TypeOrmNewsRepository implements NewsRepository {
-  private readonly logger = new Logger(TypeOrmNewsRepository.name);
-
   constructor(
     @InjectRepository(News)
-    private readonly newsRepository: Repository<News>,
+    private readonly repository: Repository<News>,
   ) {}
 
   async findAll(): Promise<News[]> {
-    return this.newsRepository.find();
+    return this.repository.find();
   }
 
   async findById(id: string): Promise<News | null> {
-    return this.newsRepository.findOneBy({ id });
-  }
-
-  async findByType(type: string): Promise<News[]> {
-    const newsType = type as NewsType;
-    return this.newsRepository.findBy({ type: newsType });
+    return this.repository.findOneBy({ id });
   }
 
   async create(news: News): Promise<News> {
-    return this.newsRepository.save(news);
+    return this.repository.save(news);
   }
 
-  async update(id: string, newsData: Partial<News>): Promise<News | null> {
-    await this.newsRepository.update(id, newsData);
+  async update(id: string, news: Partial<News>): Promise<News | null> {
+    await this.repository.update(id, news);
     return this.findById(id);
   }
 
   async delete(id: string): Promise<{ success: boolean; news: News | null }> {
-    try {
-      const news = await this.findById(id);
-      this.logger.log(`Attempting to delete news with ID: ${id}`);
-
-      if (!news) {
-        this.logger.warn(`News with ID ${id} not found for deletion`);
-        return { success: false, news: null };
-      }
-
-      this.logger.log(`Found news to delete: ${JSON.stringify(news)}`);
-      await this.newsRepository.remove(news);
-
-      const checkIfDeleted = await this.findById(id);
-      const success = checkIfDeleted === null;
-
-      this.logger.log(`Deletion success: ${success}`);
-
-      return {
-        success,
-        news,
-      };
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        this.logger.error(`Error deleting news: ${error.message}`, error.stack);
-      } else {
-        this.logger.error('Error deleting news', error);
-      }
-      return { success: false, news: null };
-    }
+    const news = await this.findById(id);
+    if (!news) return { success: false, news: null };
+    await this.repository.delete(id);
+    return { success: true, news };
   }
 }

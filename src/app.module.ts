@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { NewsModule } from './presentation/modules/news.module';
+import { NewsModule } from 'src/modules/news.module';
 
 @Module({
   imports: [

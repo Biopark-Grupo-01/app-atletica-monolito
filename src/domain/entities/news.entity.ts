@@ -6,15 +6,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-export enum NewsType {
-  LOCAL = 'local',
-  NATIONAL = 'national',
-  INTERNATIONAL = 'international',
-  SPORTS = 'sports',
-  ENTERTAINMENT = 'entertainment',
-  OTHER = 'other',
-}
-
 @Entity('news')
 export class News {
   @PrimaryGeneratedColumn('uuid')
@@ -23,21 +14,11 @@ export class News {
   @Column()
   title: string;
 
-  @Column()
+  @Column('text')
   description: string;
 
   @Column({ type: 'timestamp' })
-  publicationDate: Date;
-
-  @Column()
-  author: string;
-
-  @Column({
-    type: 'enum',
-    enum: NewsType,
-    default: NewsType.OTHER,
-  })
-  type: NewsType;
+  date: Date;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
@@ -47,12 +28,5 @@ export class News {
 
   constructor(partial: Partial<News>) {
     Object.assign(this, partial);
-  }
-
-  updatePublicationDate(date: Date): void {
-    if (date > new Date()) {
-      throw new Error('Publication date cannot be in the future');
-    }
-    this.publicationDate = date;
   }
 }

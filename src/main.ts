@@ -1,3 +1,7 @@
+import { webcrypto } from 'crypto';
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+(global as any).crypto = webcrypto;
+
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
@@ -30,6 +34,10 @@ async function bootstrap() {
   }
 
   const port = configService.get<number>('app.port') || 3001;
+  console.log(`==============================================`);
+  console.log(`Monolith service running on port: ${port}`);
+  console.log(`==============================================`);
   await app.listen(port);
 }
+
 void bootstrap();
