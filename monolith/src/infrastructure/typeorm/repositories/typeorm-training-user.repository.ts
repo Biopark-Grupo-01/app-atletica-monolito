@@ -41,4 +41,9 @@ export class TypeOrmTrainingUserRepository implements ITrainingUserRepository {
     });
     return this.ormRepository.save(subscription);
   }
+
+  async delete(id: string): Promise<boolean> {
+    const result = await this.ormRepository.delete(id);
+    return result.affected ? result.affected > 0 : false;
+  }
 }

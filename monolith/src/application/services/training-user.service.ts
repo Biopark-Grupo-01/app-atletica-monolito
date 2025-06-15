@@ -29,4 +29,11 @@ export class TrainingUserService {
 
     return this.trainingUserRepository.subscribe(userId, trainingId);
   }
+
+  async delete(id: string): Promise<void> {
+    const success = await this.trainingUserRepository.delete(id);
+    if (!success) {
+      throw new Error(`Subscription with ID '${id}' could not be deleted.`);
+    }
+  }
 }
