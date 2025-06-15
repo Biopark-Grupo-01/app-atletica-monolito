@@ -1,4 +1,14 @@
-import { Controller, Post, Get, Body } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  Delete,
+  Param,
+  Res,
+  HttpStatus,
+  Query,
+} from '@nestjs/common';
 import { TrainingUserService } from '@app/application/services/training-user.service';
 import { CreateTrainingUserDto } from '@app/application/dtos/training-user.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
@@ -8,8 +18,6 @@ import {
   ApiResponse as CustomApiResponse,
 } from '../../interfaces/http/response.interface';
 import { Response } from 'express';
-import { Res, HttpStatus } from '@nestjs/common';
-import { Query } from '@nestjs/common'; // adicione se ainda não tiver
 
 @ApiTags('Subscriptions')
 @Controller('subscriptions')
@@ -88,6 +96,35 @@ export class TrainingUserController {
           new ErrorResponse(
             HttpStatus.INTERNAL_SERVER_ERROR,
             'Erro ao processar a inscrição',
+            error instanceof Error ? error.stack : undefined,
+          ),
+        );
+    }
+  }
+
+  @Delete(':id')
+  async delete(
+    @Param('id') id: string,
+    @Res() res: Response,
+  ): Promise<Response<CustomApiResponse<void>>> {
+    try {
+      await this.trainingUserService.delete(id);
+      return res
+        .status(HttpStatus.OK)
+        .json(
+          new SuccessResponse<void>(
+            HttpStatus.OK,
+            undefined,
+            'Inscrição removida com sucesso',
+          ),
+        );
+    } catch (error) {
+      return res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json(
+          new ErrorResponse(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            'Erro ao remover inscrição',
             error instanceof Error ? error.stack : undefined,
           ),
         );
