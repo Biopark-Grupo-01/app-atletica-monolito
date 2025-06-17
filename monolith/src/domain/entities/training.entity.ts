@@ -47,7 +47,7 @@ export class Training {
   @JoinColumn({ name: 'training_modality_id' })
   trainingModality: TrainingModality;
 
-  @Column({ name: 'training_modality_id', nullable: false })
+  @Column({ name: 'training_modality_id', nullable: true })
   trainingModalityId: string;
 
   constructor(partial: Partial<Training>) {
