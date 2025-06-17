@@ -7,7 +7,6 @@ import {
   Body,
   Param,
   HttpStatus,
-  NotFoundException,
   Res,
 } from '@nestjs/common';
 import {
@@ -30,7 +29,6 @@ import {
   ApiResponse as CustomApiResponse,
 } from '../../interfaces/http/response.interface';
 // import { HateoasLinkDto } from '../../interfaces/http/hateoas-link.dto';
-
 
 @ApiTags('Training Modalities')
 @Controller('training-modalities')
@@ -65,14 +63,17 @@ export class TrainingModalityController {
           ),
         );
     } catch (error) {
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : 'Error creating training modality';
       return res
-        .status(HttpStatus.BAD_REQUEST)
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
         .json(
           new ErrorResponse(
-            HttpStatus.BAD_REQUEST,
-            'Error creating training modality',
-            error.message,
-            error.stack,
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            message,
+            error instanceof Error ? error.stack : undefined,
           ),
         );
     }
@@ -105,14 +106,17 @@ export class TrainingModalityController {
           ),
         );
     } catch (error) {
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : 'Error retrieving training modalities';
       return res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
         .json(
           new ErrorResponse(
             HttpStatus.INTERNAL_SERVER_ERROR,
-            'Error retrieving modalities',
-            error.message,
-            error.stack,
+            message,
+            error instanceof Error ? error.stack : undefined,
           ),
         );
     }
@@ -143,19 +147,17 @@ export class TrainingModalityController {
           ),
         );
     } catch (error) {
-      if (error instanceof NotFoundException) {
-        return res
-          .status(HttpStatus.NOT_FOUND)
-          .json(new ErrorResponse(HttpStatus.NOT_FOUND, error.message));
-      }
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : 'Error retrieving training modality';
       return res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
         .json(
           new ErrorResponse(
             HttpStatus.INTERNAL_SERVER_ERROR,
-            'Error retrieving training modality',
-            error.message,
-            error.stack,
+            message,
+            error instanceof Error ? error.stack : undefined,
           ),
         );
     }
@@ -185,19 +187,17 @@ export class TrainingModalityController {
           new SuccessResponse(HttpStatus.OK, withLinks, 'Updated successfully'),
         );
     } catch (error) {
-      if (error instanceof NotFoundException) {
-        return res
-          .status(HttpStatus.NOT_FOUND)
-          .json(new ErrorResponse(HttpStatus.NOT_FOUND, error.message));
-      }
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : 'Error updating training modality';
       return res
-        .status(HttpStatus.BAD_REQUEST)
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
         .json(
           new ErrorResponse(
-            HttpStatus.BAD_REQUEST,
-            'Error updating training modality',
-            error.message,
-            error.stack,
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            message,
+            error instanceof Error ? error.stack : undefined,
           ),
         );
     }
@@ -227,20 +227,18 @@ export class TrainingModalityController {
             links,
           ),
         );
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        return res
-          .status(HttpStatus.NOT_FOUND)
-          .json(new ErrorResponse(HttpStatus.NOT_FOUND, error.message));
-      }
+    } catch (error: any) {
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : 'Error deleting training modality';
       return res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
         .json(
           new ErrorResponse(
             HttpStatus.INTERNAL_SERVER_ERROR,
-            'Error deleting training modality',
-            error.message,
-            error.stack,
+            message,
+            error instanceof Error ? error.stack : undefined,
           ),
         );
     }

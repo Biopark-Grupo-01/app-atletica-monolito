@@ -2,10 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Event, EventType } from '../../../domain/entities/event.entity';
-import { EventRepository } from '../../../domain/repositories/event.repository.interface';
+import { IEventRepository } from '../../../domain/repositories/event.repository.interface';
 
 @Injectable()
-export class TypeOrmEventRepository implements EventRepository {
+export class TypeOrmEventRepository implements IEventRepository {
   private readonly logger = new Logger(TypeOrmEventRepository.name);
 
   constructor(
@@ -31,17 +31,12 @@ export class TypeOrmEventRepository implements EventRepository {
     return this.eventRepository.save(event);
   }
 
-  async update(
-    id: string,
-    eventData: Partial<Event>,
-  ): Promise<Event | null> {
+  async update(id: string, eventData: Partial<Event>): Promise<Event | null> {
     await this.eventRepository.update(id, eventData);
     return this.findById(id);
   }
 
-  async delete(
-    id: string,
-  ): Promise<{ success: boolean; event: Event | null }> {
+  async delete(id: string): Promise<{ success: boolean; event: Event | null }> {
     try {
       // Buscar o evento antes de deletar
       const event = await this.findById(id);
