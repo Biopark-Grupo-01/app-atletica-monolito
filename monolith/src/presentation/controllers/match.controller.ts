@@ -70,9 +70,19 @@ export class MatchController {
           ),
         );
     } catch (error) {
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : 'Error retrieving match';
       return res
-        .status(HttpStatus.NOT_FOUND)
-        .json(new ErrorResponse(HttpStatus.NOT_FOUND, error.message));
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json(
+          new ErrorResponse(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            message,
+            error instanceof Error ? error.stack : undefined,
+          ),
+        );
     }
   }
 
@@ -119,9 +129,19 @@ export class MatchController {
           ),
         );
     } catch (error) {
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : 'Error updating match';
       return res
-        .status(HttpStatus.NOT_FOUND)
-        .json(new ErrorResponse(HttpStatus.NOT_FOUND, error.message));
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json(
+          new ErrorResponse(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            message,
+            error instanceof Error ? error.stack : undefined,
+          ),
+        );
     }
   }
 
@@ -146,9 +166,19 @@ export class MatchController {
           ),
         );
     } catch (error) {
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : 'Error deleting match';
       return res
-        .status(HttpStatus.NOT_FOUND)
-        .json(new ErrorResponse(HttpStatus.NOT_FOUND, error.message));
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json(
+          new ErrorResponse(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            message,
+            error instanceof Error ? error.stack : undefined,
+          ),
+        );
     }
   }
 }
