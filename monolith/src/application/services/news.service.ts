@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { News } from '../../domain/entities/news.entity';
 import {
-  NewsRepository,
+  INewsRepository,
   NEWS_REPOSITORY,
 } from '../../domain/repositories/news.repository.interface';
 import { CreateNewsDto, UpdateNewsDto } from '../dtos/news.dto';
@@ -11,7 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 export class NewsService {
   constructor(
     @Inject(NEWS_REPOSITORY)
-    private newsRepository: NewsRepository,
+    private newsRepository: INewsRepository,
   ) {}
 
   async findAll(): Promise<News[]> {

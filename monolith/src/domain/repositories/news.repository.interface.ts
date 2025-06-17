@@ -1,8 +1,8 @@
 import { News } from 'src/domain/entities/news.entity';
 
-export const NEWS_REPOSITORY = 'NEWS_REPOSITORY';
+export const NEWS_REPOSITORY = Symbol('INewsRepository');
 
-export interface NewsRepository {
+export interface INewsRepository {
   findAll(): Promise<News[]>;
   findById(id: string): Promise<News | null>;
   create(news: News): Promise<News>;

@@ -1,8 +1,8 @@
-import { Event, EventType } from '../entities/event.entity';
+import { Event } from '../entities/event.entity';
 
-export const EVENT_REPOSITORY = 'EVENT_REPOSITORY';
+export const EVENT_REPOSITORY = Symbol('IEventRepository');
 
-export interface EventRepository {
+export interface IEventRepository {
   findAll(): Promise<Event[]>;
   findById(id: string): Promise<Event | null>;
   findByType(type: string): Promise<Event[]>;
