@@ -10,6 +10,7 @@ import { TrainingUserModule } from './modules/training-user.module';
 import { EventModule } from './modules/event.module';
 import { ConfigModule } from '@nestjs/config';
 import { MicroservicesModule } from './modules/microservices/microservices.module';
+import { NewsModule } from './modules/news.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { MicroservicesModule } from './modules/microservices/microservices.modul
     TrainingUserModule,
     EventModule,
     MicroservicesModule,
+    NewsModule,
   ],
   controllers: [],
   providers: [],
