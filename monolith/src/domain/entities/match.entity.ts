@@ -9,8 +9,8 @@ import {
 } from 'typeorm';
 import { TrainingModality } from './training-modality.entity';
 
-@Entity('trainings')
-export class Training {
+@Entity('matches')
+export class Match {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -30,27 +30,22 @@ export class Training {
   start_time: string;
 
   @Column()
-  coach: string;
-
-  @Column()
   responsible: string;
 
-  @CreateDateColumn()
-  created_at: Date;
-
-  @UpdateDateColumn()
-  updated_at: Date;
-
-  @ManyToOne(() => TrainingModality, (modality) => modality.trainings, {
-    eager: true,
-  })
+  @ManyToOne(() => TrainingModality, { eager: true })
   @JoinColumn({ name: 'training_modality_id' })
   trainingModality: TrainingModality;
 
   @Column({ name: 'training_modality_id', nullable: true })
   trainingModalityId: string;
 
-  constructor(partial: Partial<Training>) {
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp with time zone' })
+  updatedAt: Date;
+
+  constructor(partial: Partial<Match>) {
     Object.assign(this, partial);
   }
 }

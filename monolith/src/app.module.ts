@@ -6,6 +6,7 @@ import { RoleModule } from './modules/role.module';
 import { TrainingModalityModule } from './modules/training-modality.module';
 import { ProductModule } from './modules/product.module';
 import { TrainingModule } from './modules/training.module';
+import { MatchModule } from './modules/match.module';
 import { TrainingUserModule } from './modules/training-user.module';
 import { EventModule } from './modules/event.module';
 import { ConfigModule } from '@nestjs/config';
@@ -22,6 +23,7 @@ import { NewsModule } from './modules/news.module';
     TrainingModalityModule,
     ProductModule,
     TrainingModule,
+    MatchModule,
     TrainingUserModule,
     EventModule,
     MicroservicesModule,

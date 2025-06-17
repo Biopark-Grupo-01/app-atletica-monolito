@@ -27,6 +27,7 @@ export class TrainingModalityService {
     return {
       id: modality.id,
       name: modality.name,
+      icon: modality.icon,
       createdAt: modality.createdAt,
       updatedAt: modality.updatedAt,
     };
