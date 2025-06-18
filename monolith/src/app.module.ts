@@ -5,6 +5,7 @@ import { UserModule } from './modules/user.module';
 import { RoleModule } from './modules/role.module';
 import { TrainingModalityModule } from './modules/training-modality.module';
 import { ProductModule } from './modules/product.module';
+import { ProductCategoryModule } from './modules/product-category.module';
 import { TrainingModule } from './modules/training.module';
 import { MatchModule } from './modules/match.module';
 import { TrainingUserModule } from './modules/training-user.module';
@@ -22,6 +23,7 @@ import { NewsModule } from './modules/news.module';
     RoleModule,
     TrainingModalityModule,
     ProductModule,
+    ProductCategoryModule,
     TrainingModule,
     MatchModule,
     TrainingUserModule,
