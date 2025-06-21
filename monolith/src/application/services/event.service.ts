@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { Event, EventType } from '../../domain/entities/event.entity';
 import {
-  EventRepository,
+  IEventRepository,
   EVENT_REPOSITORY,
 } from '../../domain/repositories/event.repository.interface';
 import { CreateEventDto, UpdateEventDto } from '../dtos/event.dto';
@@ -11,7 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 export class EventService {
   constructor(
     @Inject(EVENT_REPOSITORY)
-    private eventRepository: EventRepository,
+    private eventRepository: IEventRepository,
   ) {}
 
   async findAll(): Promise<Event[]> {
