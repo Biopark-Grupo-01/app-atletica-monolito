@@ -8,6 +8,7 @@ import { ConfigModule } from '@nestjs/config';
 import { UserModule } from './modules/user.module';
 import { RoleModule } from './modules/role.module';
 import { MicroservicesModule } from './modules/microservices/microservices.module';
+import { AuthModule } from './modules/auth.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { MicroservicesModule } from './modules/microservices/microservices.modul
     UserModule,
     RoleModule,
     MicroservicesModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],

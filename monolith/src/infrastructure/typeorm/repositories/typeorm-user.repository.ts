@@ -27,9 +27,9 @@ export class TypeOrmUserRepository implements IUserRepository {
     });
   }
 
-  async findByGoogleId(googleId: string): Promise<User | null> {
+  async findByFirebaseUid(firebaseUid: string): Promise<User | null> {
     return this.userRepository.findOne({
-      where: { googleId },
+      where: { firebaseUid },
       relations: ['role'],
     });
   }

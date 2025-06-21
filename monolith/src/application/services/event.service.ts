@@ -1,6 +1,9 @@
 import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { Event, EventType } from '../../domain/entities/event.entity';
-import { EventRepository, EVENT_REPOSITORY } from '../../domain/repositories/event.repository.interface';
+import {
+  EventRepository,
+  EVENT_REPOSITORY,
+} from '../../domain/repositories/event.repository.interface';
 import { CreateEventDto, UpdateEventDto } from '../dtos/event.dto';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -8,7 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 export class EventService {
   constructor(
     @Inject(EVENT_REPOSITORY)
-    private eventRepository: EventRepository
+    private eventRepository: EventRepository,
   ) {}
 
   async findAll(): Promise<Event[]> {
@@ -35,7 +38,7 @@ export class EventService {
       id: uuidv4(),
       ...createEventDto,
     });
-    
+
     return this.eventRepository.create(event);
   }
 
@@ -49,21 +52,23 @@ export class EventService {
     if (!updatedEvent) {
       throw new NotFoundException(`Failed to update event with ID ${id}`);
     }
-    
+
     return updatedEvent;
   }
 
-  async delete(id: string): Promise<{ success: boolean; eventId: string; eventTitle: string | null }> {
+  async delete(
+    id: string,
+  ): Promise<{ success: boolean; eventId: string; eventTitle: string | null }> {
     const event = await this.eventRepository.findById(id);
     if (!event) {
       throw new NotFoundException(`Event with ID ${id} not found`);
     }
 
     const result = await this.eventRepository.delete(id);
-    return { 
+    return {
       success: result.success,
       eventId: id,
-      eventTitle: result.event?.title || null
+      eventTitle: result.event?.title || null,
     };
   }
 }

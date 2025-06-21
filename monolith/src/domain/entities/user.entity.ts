@@ -32,8 +32,8 @@ export class User {
   @Column({ name: 'profile_picture_url', nullable: true, type: 'text' })
   profilePicture?: string;
 
-  @Column({ name: 'google_id', nullable: true, unique: true })
-  googleId?: string;
+  @Column({ name: 'firebase_uid', nullable: true, unique: true }) // Changed from google_id to firebase_uid
+  firebaseUid?: string;
 
   @Column({ name: 'fcm_token', nullable: true, type: 'text' })
   fcmToken?: string;

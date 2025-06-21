@@ -21,6 +21,14 @@ export class UserService {
     private roleService: RoleService, // Inject RoleService
   ) {}
 
+  async findOne(id: string): Promise<UserResponseDto> {
+    const user = await this.userRepository.findById(id);
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+    return this.mapToResponseDto(user);
+  }
+
   private async mapToResponseDto(user: User): Promise<UserResponseDto> {
     let roleDto: RoleResponseDto | undefined = undefined;
     if (user.roleId) {
@@ -40,7 +48,7 @@ export class UserService {
       email: user.email,
       phone: user.phone,
       profilePicture: user.profilePicture,
-      googleId: user.googleId,
+      firebaseUid: user.firebaseUid,
       fcmToken: user.fcmToken,
       role: roleDto,
       planStartDate: user.planStartDate,
@@ -77,10 +85,12 @@ export class UserService {
     return this.mapToResponseDto(user);
   }
 
-  async findByGoogleId(googleId: string): Promise<UserResponseDto> {
-    const user = await this.userRepository.findByGoogleId(googleId);
+  async findByFirebaseUid(firebaseUid: string): Promise<UserResponseDto> {
+    const user = await this.userRepository.findByFirebaseUid(firebaseUid);
     if (!user) {
-      throw new NotFoundException(`User with Google ID ${googleId} not found`);
+      throw new NotFoundException(
+        `User with Firebase UID ${firebaseUid} not found`,
+      );
     }
     return this.mapToResponseDto(user);
   }

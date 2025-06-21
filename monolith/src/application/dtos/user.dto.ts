@@ -27,10 +27,10 @@ export class CreateUserDto {
   profilePicture?: string;
 
   @ApiPropertyOptional({
-    description: 'Google ID for social login',
-    example: 'google12345',
+    description: 'Firebase UID for social login',
+    example: 'firebase12345',
   })
-  googleId?: string;
+  firebaseUid?: string;
 
   @ApiPropertyOptional({
     description: 'FCM token for push notifications',
@@ -86,10 +86,10 @@ export class UpdateUserDto {
   profilePicture?: string;
 
   @ApiPropertyOptional({
-    description: 'Google ID for social login',
-    example: 'google67890',
+    description: 'Firebase UID for social login',
+    example: 'firebase67890',
   })
-  googleId?: string;
+  firebaseUid?: string;
 
   @ApiPropertyOptional({
     description: 'FCM token for push notifications',
@@ -142,10 +142,10 @@ export class UserResponseDto {
   profilePicture?: string;
 
   @ApiPropertyOptional({
-    description: 'Google ID for social login',
-    example: 'google12345',
+    description: 'Firebase UID for social login',
+    example: 'firebase12345',
   })
-  googleId?: string;
+  firebaseUid?: string;
 
   @ApiPropertyOptional({ description: 'FCM token for push notifications' })
   fcmToken?: string;
