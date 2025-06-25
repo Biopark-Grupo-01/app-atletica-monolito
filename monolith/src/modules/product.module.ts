@@ -6,9 +6,10 @@ import { TypeOrmProductRepository } from '../infrastructure/typeorm/repositories
 import { PRODUCT_REPOSITORY_TOKEN } from '../domain/repositories/product.repository.interface';
 import { Product } from '../domain/entities/product.entity';
 import { HateoasService } from '../application/services/hateoas.service';
+import { ProductCategoryModule } from './product-category.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Product])],
+  imports: [TypeOrmModule.forFeature([Product]), ProductCategoryModule],
   controllers: [ProductController],
   providers: [
     ProductService,

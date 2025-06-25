@@ -12,6 +12,7 @@ import { EventModule } from './modules/event.module';
 import { ConfigModule } from '@nestjs/config';
 import { MicroservicesModule } from './modules/microservices/microservices.module';
 import { NewsModule } from './modules/news.module';
+import { ProductCategoryModule } from './modules/product-category.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { NewsModule } from './modules/news.module';
     EventModule,
     MicroservicesModule,
     NewsModule,
+    ProductCategoryModule,
   ],
   controllers: [],
   providers: [],

@@ -4,7 +4,10 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { ProductCategory } from './product-category.entity';
 
 @Entity('products')
 export class Product {
@@ -28,6 +31,13 @@ export class Product {
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp with time zone' })
   updatedAt: Date;
+
+  @ManyToOne(() => ProductCategory, (category) => category.products, {
+    onDelete: 'SET NULL',
+    nullable: true,
+  })
+  @JoinColumn({ name: 'category_id' })
+  category: ProductCategory;
 
   constructor(partial: Partial<Product>) {
     Object.assign(this, partial);
