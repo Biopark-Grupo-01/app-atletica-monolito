@@ -1,6 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { TicketStatusEnum, UserTicketStatusEnum } from "../../domain/entities/ticket.entity";
-import { HateoasLinkDto } from './hateoas-link.dto';
+
+export enum TicketStatusEnum {
+  AVAILABLE = 'available',
+  RESERVED = 'reserved',
+  SOLD = 'sold',
+  CANCELLED = 'cancelled',
+}
 
 export class TicketResponseDto {
   @ApiProperty({
@@ -23,19 +28,11 @@ export class TicketResponseDto {
   price: number;
 
   @ApiProperty({
-    description: 'Status do ticket (disponibilidade)',
+    description: 'Status do ticket',
     enum: TicketStatusEnum,
     example: TicketStatusEnum.AVAILABLE,
   })
   status: TicketStatusEnum;
-
-  @ApiProperty({
-    description: 'Status do usuário (pagamento/validade)',
-    enum: UserTicketStatusEnum,
-    example: UserTicketStatusEnum.NOT_PAID,
-    required: false,
-  })
-  userStatus?: UserTicketStatusEnum;
 
   @ApiProperty({
     description: 'ID do evento',
@@ -68,11 +65,4 @@ export class TicketResponseDto {
     example: '2023-12-01T10:00:00Z',
   })
   updatedAt: Date;
-
-  @ApiProperty({
-    description: 'Links HATEOAS para ações disponíveis',
-    type: [HateoasLinkDto],
-    required: false,
-  })
-  _links?: HateoasLinkDto[];
 }

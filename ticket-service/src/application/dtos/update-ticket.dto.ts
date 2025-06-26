@@ -1,5 +1,5 @@
 import { IsDecimal, IsEnum, IsOptional, IsString, IsUUID } from 'class-validator';
-import { TicketStatus } from '../../domain/entities/ticket.entity';
+import { TicketStatusEnum } from '../../domain/entities/ticket.entity';
 
 export class UpdateTicketDto {
   @IsOptional()
@@ -15,8 +15,8 @@ export class UpdateTicketDto {
   price?: number;
   
   @IsOptional()
-  @IsEnum(TicketStatus)
-  status?: TicketStatus;
+  @IsEnum(TicketStatusEnum)
+  status?: TicketStatusEnum;
 
   @IsOptional()
   @IsUUID()

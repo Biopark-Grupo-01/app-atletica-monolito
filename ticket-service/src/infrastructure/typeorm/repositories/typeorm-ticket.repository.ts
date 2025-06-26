@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Ticket, TicketStatus } from '../../../domain/entities/ticket.entity';
+import { Ticket } from '../../../domain/entities/ticket.entity';
+import { TicketStatusEnum } from '../../../domain/value-objects/ticket-status.vo';
 import { ITicketRepository } from '../../../domain/repositories/ticket.repository.interface';
 
 @Injectable()
@@ -31,7 +32,7 @@ export class TypeOrmTicketRepository implements ITicketRepository {
     return this.ticketRepository.find({ 
       where: { 
         eventId, 
-        status: TicketStatus.AVAILABLE 
+        status: TicketStatusEnum.AVAILABLE 
       } 
     });
   }

@@ -13,6 +13,7 @@ import { AuthModule } from './modules/auth.module';
 import { NewsModule } from './modules/news.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { FirebaseModule } from '@infrastructure/firebase/firebase.module';
+import { GatewayModule } from './modules/gateway/gateway.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { FirebaseModule } from '@infrastructure/firebase/firebase.module';
     AuthModule,
     NewsModule,
     NotificationModule,
+    GatewayModule,
   ],
   controllers: [],
   providers: [],
