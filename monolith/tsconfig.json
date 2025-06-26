@@ -11,7 +11,7 @@
     "paths": {
       "@app/*": ["src/*"],
       "@infrastructure/*": ["src/infrastructure/*"],
-      "@contexts/*": ["src/contexts/*"]
+      "@contexts/*": ["src/contexts/*"],
     },
 
     // Configurações de decoradores

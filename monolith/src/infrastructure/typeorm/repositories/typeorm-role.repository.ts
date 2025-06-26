@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Role } from '../../../domain/entities/role.entity';
-import { IRoleRepository } from '../../../domain/repositories/role.repository.interface';
-import { CreateRoleDto } from '../../../application/dtos/create-role.dto';
-import { UpdateRoleDto } from '../../../application/dtos/update-role.dto';
+import { CreateRoleDto, UpdateRoleDto } from '@app/application/dtos/role.dto';
+import { IRoleRepository } from '@app/domain/repositories/role.repository.interface';
+import { Role } from '@app/domain/entities/role.entity';
 
 @Injectable()
 export class TypeOrmRoleRepository implements IRoleRepository {
@@ -12,11 +11,6 @@ export class TypeOrmRoleRepository implements IRoleRepository {
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
   ) {}
-
-  async create(createRoleDto: CreateRoleDto): Promise<Role> {
-    const newRole = this.roleRepository.create(createRoleDto);
-    return this.roleRepository.save(newRole);
-  }
 
   async findAll(): Promise<Role[]> {
     return this.roleRepository.find();
@@ -27,10 +21,19 @@ export class TypeOrmRoleRepository implements IRoleRepository {
   }
 
   async findByName(name: string): Promise<Role | null> {
-    return this.roleRepository.findOneBy({ name });
+    return this.roleRepository.findOne({ where: { name } });
+  }
+
+  async create(createRoleDto: CreateRoleDto): Promise<Role> {
+    const role = this.roleRepository.create(createRoleDto);
+    return this.roleRepository.save(role);
   }
 
   async update(id: string, updateRoleDto: UpdateRoleDto): Promise<Role | null> {
+    const existingRole = await this.findById(id);
+    if (!existingRole) {
+      return null;
+    }
     await this.roleRepository.update(id, updateRoleDto);
     return this.findById(id);
   }

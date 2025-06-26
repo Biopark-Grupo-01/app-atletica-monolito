@@ -6,31 +6,30 @@ import {
   Param,
   Delete,
   Put,
-  Res,
+  HttpCode,
   HttpStatus,
-  NotFoundException,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
-import { RoleService } from '../../application/services/role.service';
-import { CreateRoleDto } from '../../application/dtos/create-role.dto';
-import { UpdateRoleDto } from '../../application/dtos/update-role.dto';
-import { RoleResponseDto } from '../../application/dtos/role-response.dto';
+import { RoleService } from '@app/application/services/role.service';
+import {
+  CreateRoleDto,
+  UpdateRoleDto,
+  RoleResponseDto,
+} from '@app/application/dtos/role.dto';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
-  ApiParam,
-  ApiBody,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
-import { HateoasLinkDto } from '../../interfaces/http/hateoas-link.dto';
-import {
-  SuccessResponse,
-  ErrorResponse,
-  ApiResponse as CustomApiResponse,
-} from '../../interfaces/http/response.interface';
-import { Response } from 'express';
-import { HateoasService } from '../../application/services/hateoas.service';
+import { HateoasService } from '@app/application/services/hateoas.service';
+import { Request } from 'express';
+import { FirebaseAuthGuard } from '@app/infrastructure/guards/firebase-auth.guard';
 
 @ApiTags('Roles')
+@ApiBearerAuth()
+@UseGuards(FirebaseAuthGuard)
 @Controller('roles')
 export class RoleController {
   constructor(
@@ -38,237 +37,96 @@ export class RoleController {
     private readonly hateoasService: HateoasService,
   ) {}
 
+  private getBaseUrl(req: Request): string {
+    return `${req.protocol}://${req.get('host')}${req.baseUrl}`;
+  }
+
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new role' })
-  @ApiBody({ type: CreateRoleDto })
   @ApiResponse({
     status: 201,
     description: 'The role has been successfully created.',
-    type: SuccessResponse,
+    type: RoleResponseDto,
   })
-  @ApiResponse({
-    status: 400,
-    description: 'Bad Request.',
-    type: ErrorResponse,
-  })
+  @ApiResponse({ status: 400, description: 'Invalid input.' })
   async create(
     @Body() createRoleDto: CreateRoleDto,
-    @Res() res: Response,
-  ): Promise<Response<CustomApiResponse<RoleResponseDto>>> {
-    try {
-      const role = await this.roleService.create(createRoleDto);
-      const responseDtoWithLinks = this.hateoasService.addLinksToItem(
-        role,
-        'roles',
-      );
-      return res
-        .status(HttpStatus.CREATED)
-        .json(
-          new SuccessResponse<RoleResponseDto>(
-            HttpStatus.CREATED,
-            responseDtoWithLinks,
-            'Role created successfully',
-          ),
-        );
-    } catch (error) {
-      return res
-        .status(HttpStatus.BAD_REQUEST)
-        .json(
-          new ErrorResponse(
-            HttpStatus.BAD_REQUEST,
-            'Error creating role',
-            error.message as string,
-            error.stack as string,
-          ),
-        );
-    }
+    @Req() req: Request,
+  ): Promise<RoleResponseDto> {
+    const role = await this.roleService.create(createRoleDto);
+    return this.hateoasService.addLinksToItem(
+      role,
+      this.getBaseUrl(req),
+    ) as RoleResponseDto;
   }
 
   @Get()
   @ApiOperation({ summary: 'Get all roles' })
   @ApiResponse({
     status: 200,
-    description: 'Return all roles.',
-    type: SuccessResponse,
+    description: 'List of all roles.',
+    type: [RoleResponseDto],
   })
-  async findAll(
-    @Res() res: Response,
-  ): Promise<Response<CustomApiResponse<RoleResponseDto[]>>> {
+  async findAll(@Req() req: Request): Promise<RoleResponseDto[]> {
     const roles = await this.roleService.findAll();
     const rolesWithLinks = this.hateoasService.addLinksToCollection(
       roles,
-      'roles',
+      this.getBaseUrl(req),
     );
-    const collectionLinks =
-      this.hateoasService.createLinksForCollection('roles');
-    return res
-      .status(HttpStatus.OK)
-      .json(
-        new SuccessResponse<RoleResponseDto[]>(
-          HttpStatus.OK,
-          rolesWithLinks,
-          'Roles retrieved successfully',
-          collectionLinks,
-        ),
-      );
+    // Add collection-level links
+    return Object.assign(rolesWithLinks, {
+      _links: this.hateoasService.createLinksForCollection(
+        this.getBaseUrl(req),
+      ),
+    });
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a role by ID' })
-  @ApiParam({ name: 'id', description: 'Role ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Return the role.',
-    type: SuccessResponse,
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Role not found.',
-    type: ErrorResponse,
-  })
+  @ApiResponse({ status: 200, description: 'The role.', type: RoleResponseDto })
+  @ApiResponse({ status: 404, description: 'Role not found.' })
   async findOne(
     @Param('id') id: string,
-    @Res() res: Response,
-  ): Promise<Response<CustomApiResponse<RoleResponseDto>>> {
-    try {
-      const role = await this.roleService.findOne(id);
-      const responseDtoWithLinks = this.hateoasService.addLinksToItem(
-        role,
-        'roles',
-      );
-      return res
-        .status(HttpStatus.OK)
-        .json(
-          new SuccessResponse<RoleResponseDto>(
-            HttpStatus.OK,
-            responseDtoWithLinks,
-            'Role retrieved successfully',
-          ),
-        );
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        return res
-          .status(HttpStatus.NOT_FOUND)
-          .json(new ErrorResponse(HttpStatus.NOT_FOUND, error.message));
-      }
-      return res
-        .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .json(
-          new ErrorResponse(
-            HttpStatus.INTERNAL_SERVER_ERROR,
-            'Error retrieving role',
-            error.message as string,
-            error.stack as string,
-          ),
-        );
-    }
+    @Req() req: Request,
+  ): Promise<RoleResponseDto> {
+    const role = await this.roleService.findById(id);
+    return this.hateoasService.addLinksToItem(
+      role,
+      this.getBaseUrl(req),
+    ) as RoleResponseDto;
   }
 
   @Put(':id')
   @ApiOperation({ summary: 'Update a role' })
-  @ApiParam({ name: 'id', description: 'Role ID' })
-  @ApiBody({ type: UpdateRoleDto })
   @ApiResponse({
     status: 200,
     description: 'The role has been successfully updated.',
-    type: SuccessResponse,
+    type: RoleResponseDto,
   })
-  @ApiResponse({
-    status: 404,
-    description: 'Role not found.',
-    type: ErrorResponse,
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Bad Request.',
-    type: ErrorResponse,
-  })
+  @ApiResponse({ status: 404, description: 'Role not found.' })
+  @ApiResponse({ status: 400, description: 'Invalid input.' })
   async update(
     @Param('id') id: string,
     @Body() updateRoleDto: UpdateRoleDto,
-    @Res() res: Response,
-  ): Promise<Response<CustomApiResponse<RoleResponseDto>>> {
-    try {
-      const role = await this.roleService.update(id, updateRoleDto);
-      const responseDtoWithLinks = this.hateoasService.addLinksToItem(
-        role,
-        'roles',
-      );
-      return res
-        .status(HttpStatus.OK)
-        .json(
-          new SuccessResponse<RoleResponseDto>(
-            HttpStatus.OK,
-            responseDtoWithLinks,
-            'Role updated successfully',
-          ),
-        );
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        return res
-          .status(HttpStatus.NOT_FOUND)
-          .json(new ErrorResponse(HttpStatus.NOT_FOUND, error.message));
-      }
-      return res
-        .status(HttpStatus.BAD_REQUEST)
-        .json(
-          new ErrorResponse(
-            HttpStatus.BAD_REQUEST,
-            'Error updating role',
-            error.message as string,
-            error.stack as string,
-          ),
-        );
-    }
+    @Req() req: Request,
+  ): Promise<RoleResponseDto> {
+    const role = await this.roleService.update(id, updateRoleDto);
+    return this.hateoasService.addLinksToItem(
+      role,
+      this.getBaseUrl(req),
+    ) as RoleResponseDto;
   }
 
   @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a role' })
-  @ApiParam({ name: 'id', description: 'Role ID' })
   @ApiResponse({
-    status: 200,
+    status: 204,
     description: 'The role has been successfully deleted.',
-    type: SuccessResponse,
   })
-  @ApiResponse({
-    status: 404,
-    description: 'Role not found.',
-    type: ErrorResponse,
-  })
-  async remove(
-    @Param('id') id: string,
-    @Res() res: Response,
-  ): Promise<Response<CustomApiResponse<void>>> {
-    try {
-      await this.roleService.delete(id);
-      const links: HateoasLinkDto[] =
-        this.hateoasService.createLinksForCollection('roles');
-      return res
-        .status(HttpStatus.OK)
-        .json(
-          new SuccessResponse<void>(
-            HttpStatus.OK,
-            undefined,
-            'Role deleted successfully',
-            links,
-          ),
-        );
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        return res
-          .status(HttpStatus.NOT_FOUND)
-          .json(new ErrorResponse(HttpStatus.NOT_FOUND, error.message));
-      }
-      return res
-        .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .json(
-          new ErrorResponse(
-            HttpStatus.INTERNAL_SERVER_ERROR,
-            'Error deleting role',
-            error.message as string,
-            error.stack as string,
-          ),
-        );
-    }
+  @ApiResponse({ status: 404, description: 'Role not found.' })
+  async remove(@Param('id') id: string): Promise<void> {
+    await this.roleService.delete(id);
   }
 }

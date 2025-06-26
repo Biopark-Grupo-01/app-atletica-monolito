@@ -7,6 +7,8 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.enableCors();
+
   const configService = app.get(ConfigService);
   const apiPrefix = configService.get<string>('app.apiPrefix');
 
@@ -30,6 +32,9 @@ async function bootstrap() {
   }
 
   const port = configService.get<number>('app.port') || 3001;
+  console.log(`==============================================`);
+  console.log(`Monolith service running on port: ${port}`);
+  console.log(`==============================================`);
   await app.listen(port);
 }
 void bootstrap();

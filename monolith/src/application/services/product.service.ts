@@ -26,6 +26,7 @@ export class ProductService {
       stock: product.stock,
       createdAt: product.createdAt,
       updatedAt: product.updatedAt,
+      categoryId: product.categoryId,
     };
   }
 

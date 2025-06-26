@@ -4,7 +4,10 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { TrainingModality } from './training-modality.entity';
 
 @Entity('trainings')
 export class Training {
@@ -16,9 +19,6 @@ export class Training {
 
   @Column()
   description: string;
-
-  @Column()
-  modality: string;
 
   @Column()
   place: string;
@@ -40,6 +40,15 @@ export class Training {
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  @ManyToOne(() => TrainingModality, (modality) => modality.trainings, {
+    eager: true,
+  })
+  @JoinColumn({ name: 'training_modality_id' })
+  trainingModality: TrainingModality;
+
+  @Column({ name: 'training_modality_id', nullable: true })
+  trainingModalityId: string;
 
   constructor(partial: Partial<Training>) {
     Object.assign(this, partial);

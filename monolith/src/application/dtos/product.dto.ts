@@ -83,4 +83,11 @@ export class ProductResponseDto {
     type: [HateoasLinkDto], // Corrected to use the DTO
   })
   _links?: HateoasLinkDto[];
+
+  @ApiProperty({
+    description: 'ID da categoria do produto',
+    example: '5dd39c1a-7cca-4037-be86-40dfd832b467',
+    required: false,
+  })
+  categoryId?: string;
 }
