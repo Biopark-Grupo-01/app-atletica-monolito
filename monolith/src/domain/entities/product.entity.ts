@@ -41,6 +41,9 @@ export class Product {
   @Column({ name: 'category_id', nullable: true })
   categoryId: string;
 
+  @Column({ name: 'image_url', nullable: true })
+  imageUrl?: string;
+
   constructor(partial: Partial<Product>) {
     Object.assign(this, partial);
   }
