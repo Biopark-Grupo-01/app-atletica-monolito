@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException, Inject } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  Inject,
+  Logger,
+  OnApplicationBootstrap,
+} from '@nestjs/common';
 import { Product } from '../../domain/entities/product.entity';
 import {
   IProductRepository,
@@ -9,14 +15,106 @@ import {
   UpdateProductDto,
   ProductResponseDto,
 } from '../dtos/product.dto';
+import {
+  IProductCategoryRepository,
+  PRODUCT_CATEGORY_REPOSITORY_TOKEN,
+} from '../../domain/repositories/product-category.repository.interface';
 
 @Injectable()
-export class ProductService {
+export class ProductService implements OnApplicationBootstrap {
+  private readonly logger = new Logger(ProductService.name);
+
   constructor(
     @Inject(PRODUCT_REPOSITORY_TOKEN)
     private productRepository: IProductRepository,
+    @Inject(PRODUCT_CATEGORY_REPOSITORY_TOKEN)
+    private categoryRepository: IProductCategoryRepository,
   ) {}
 
+  async onApplicationBootstrap() {
+    this.logger.log('Populando produtos...');
+    await this.seedDefaultProduct();
+  }
+
+  private async seedDefaultProduct() {
+    try {
+      // Aguardar as categorias serem criadas
+      let attempts = 0;
+      let categoriesReady = false;
+
+      while (!categoriesReady && attempts < 10) {
+        const roupasCategory =
+          await this.categoryRepository.findByName('Roupas');
+        const canecasCategory =
+          await this.categoryRepository.findByName('Canecas');
+        const chaveirosCategory =
+          await this.categoryRepository.findByName('Chaveiros');
+
+        if (roupasCategory && canecasCategory && chaveirosCategory) {
+          categoriesReady = true;
+
+          const defaultProducts: CreateProductDto[] = [
+            {
+              name: 'Camiseta Oficial Feminina',
+              description: 'Camiseta oficial feminina da Atlética Biopark',
+              price: 20.0,
+              stock: 20,
+              categoryId: roupasCategory.id,
+            },
+            {
+              name: 'Camiseta Oficial Masculina',
+              description: 'Camiseta oficial masculina da Atlética Biopark',
+              price: 20.0,
+              stock: 20,
+              categoryId: roupasCategory.id,
+            },
+            {
+              name: 'Caneca Oficial Atlética',
+              description: 'Caneca oficial da Atlética Biopark',
+              price: 15.0,
+              stock: 30,
+              categoryId: canecasCategory.id,
+            },
+            {
+              name: 'Chaveiro Oficial',
+              description: 'Chaveiro oficial da Atlética Biopark',
+              price: 5.0,
+              stock: 50,
+              categoryId: chaveirosCategory.id,
+            },
+          ];
+
+          const existingProducts = await this.productRepository.findAll();
+
+          for (const productData of defaultProducts) {
+            const productExists = existingProducts.find(
+              (p) => p.name === productData.name,
+            );
+
+            if (!productExists) {
+              this.logger.log(`Criando produto padrão: ${productData.name}`);
+              const newProduct = new Product(productData);
+              await this.productRepository.create(newProduct);
+            }
+          }
+        } else {
+          attempts++;
+          this.logger.log(
+            `Aguardando categorias serem criadas... tentativa ${attempts}`,
+          );
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        }
+      }
+
+      if (!categoriesReady) {
+        this.logger.warn(
+          'Não foi possível criar produtos: categorias não encontradas',
+        );
+      }
+    } catch (error) {
+      this.logger.error('Erro ao popular produtos padrão:', error);
+    }
+  }
   private mapToResponseDto(product: Product): ProductResponseDto {
     return {
       id: product.id,
