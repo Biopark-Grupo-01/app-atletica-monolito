@@ -19,6 +19,18 @@ export class CreateNewsDto {
     example: '2025-06-15T10:00:00Z',
   })
   date: Date;
+
+  @ApiProperty({
+    description: 'News author',
+    example: 'João Silva',
+  })
+  author: string;
+
+  @ApiPropertyOptional({
+    description: 'Image URL',
+    example: 'https://example.com/image.jpg',
+  })
+  imageUrl?: string;
 }
 
 export class UpdateNewsDto {
@@ -39,6 +51,18 @@ export class UpdateNewsDto {
     example: '2025-06-16T12:00:00Z',
   })
   date?: Date;
+
+  @ApiPropertyOptional({
+    description: 'News author',
+    example: 'Updated Author',
+  })
+  author?: string;
+
+  @ApiPropertyOptional({
+    description: 'Image URL',
+    example: 'https://example.com/updated_image.jpg',
+  })
+  imageUrl?: string;
 }
 
 export class NewsResponseDto {
@@ -65,6 +89,18 @@ export class NewsResponseDto {
     example: '2025-06-15T10:00:00Z',
   })
   date: Date;
+
+  @ApiProperty({
+    description: 'News author',
+    example: 'João Silva',
+  })
+  author: string;
+
+  @ApiPropertyOptional({
+    description: 'Image URL',
+    example: 'https://example.com/image.jpg',
+  })
+  imageUrl?: string;
 
   @ApiProperty({
     description: 'Creation date',

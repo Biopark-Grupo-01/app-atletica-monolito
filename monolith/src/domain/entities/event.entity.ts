@@ -49,6 +49,9 @@ export class Event extends AggregateRoot {
   })
   type: EventType;
 
+  @Column({ name: 'image_url', nullable: true })
+  imageUrl: string;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
