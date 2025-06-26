@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule as AppConfigModule } from '@infrastructure/config/config.module';
 import { DatabaseModule } from '@infrastructure/database/database.module';
 import { ProductModule } from './modules/product.module';
+import { ProductCategoryModule } from './modules/product-category.module';
 import { TrainingModule } from './modules/training.module';
 import { EventModule } from './modules/event.module';
 import { ConfigModule } from '@nestjs/config';
@@ -20,6 +21,7 @@ import { FirebaseModule } from '@infrastructure/firebase/firebase.module';
     AppConfigModule,
     DatabaseModule,
     ProductModule,
+    ProductCategoryModule,
     TrainingModule,
     EventModule,
     UserModule,
