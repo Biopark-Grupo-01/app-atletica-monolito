@@ -16,11 +16,14 @@ export class TypeOrmProductRepository implements IProductRepository {
   ) {}
 
   async findAll(): Promise<Product[]> {
-    return this.productRepository.find();
+    return this.productRepository.find({ relations: ['category'] });
   }
 
   async findById(id: string): Promise<Product | null> {
-    return this.productRepository.findOneBy({ id });
+    return this.productRepository.findOne({
+      where: { id },
+      relations: ['category'],
+    });
   }
 
   async create(createProductDto: CreateProductDto): Promise<Product> {
