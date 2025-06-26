@@ -5,4 +5,5 @@ export class CreateProductCategoryDto {
   @IsNotEmpty()
   @MaxLength(100)
   name: string;
+  icon: string;
 }
