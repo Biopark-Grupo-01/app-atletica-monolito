@@ -20,6 +20,12 @@ export class News {
   @Column({ type: 'timestamp' })
   date: Date;
 
+  @Column()
+  author: string;
+
+  @Column({ nullable: true })
+  imageUrl?: string;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

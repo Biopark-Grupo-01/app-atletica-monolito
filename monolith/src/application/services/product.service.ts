@@ -24,6 +24,7 @@ export class ProductService {
       description: product.description,
       price: product.price,
       stock: product.stock,
+      imageUrl: product.imageUrl,
       createdAt: product.createdAt,
       updatedAt: product.updatedAt,
       categoryId: product.categoryId,

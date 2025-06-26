@@ -7,6 +7,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - '3001:3001'
+    volumes:
+      - ./uploads:/usr/src/app/uploads
     environment:
       - ENVIRONMENT=development
       - PORT=3001
