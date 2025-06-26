@@ -25,6 +25,13 @@ export class CreateProductDto {
     example: '5dd39c1a-7cca-4037-be86-40dfd832b467',
   })
   categoryId: string;
+
+  @ApiPropertyOptional({
+    description: 'URL da imagem do produto',
+    example:
+      '/uploads/products/product-123e4567-e89b-12d3-a456-426614174000.jpg',
+  })
+  imageUrl?: string;
 }
 
 export class UpdateProductDto {
@@ -51,6 +58,13 @@ export class UpdateProductDto {
     example: '5dd39c1a-7cca-4037-be86-40dfd832b467',
   })
   categoryId?: string;
+
+  @ApiPropertyOptional({
+  description: 'URL da imagem do produto',
+    example:
+      '/uploads/products/product-123e4567-e89b-12d3-a456-426614174000.jpg',
+  })
+  imageUrl?: string;
 }
 
 export class ProductResponseDto {
@@ -77,6 +91,13 @@ export class ProductResponseDto {
 
   @ApiProperty({ description: 'Quantidade em estoque', example: 100 })
   stock: number;
+
+  @ApiPropertyOptional({
+    description: 'URL da imagem do produto',
+    example:
+      '/uploads/products/product-123e4567-e89b-12d3-a456-426614174000.jpg',
+  })
+  imageUrl?: string;
 
   @ApiProperty({
     description: 'Data de criação',
