@@ -7,6 +7,7 @@ import { Ticket } from '../domain/entities/ticket.entity';
 import { TicketService } from '../application/services/ticket.service';
 import { TicketController } from '../presentation/controllers/ticket.controller';
 import { TypeOrmTicketRepository } from '../infrastructure/typeorm/repositories/typeorm-ticket.repository';
+import { HateoasService } from '../application/services/hateoas.service';
 
 @Module({
   imports: [
@@ -17,11 +18,12 @@ import { TypeOrmTicketRepository } from '../infrastructure/typeorm/repositories/
   controllers: [TicketController],
   providers: [
     TicketService,
+    HateoasService,
     {
       provide: 'ITicketRepository',
       useClass: TypeOrmTicketRepository,
     },
   ],
-  exports: [TicketService],
+  exports: [TicketService, HateoasService],
 })
 export class TicketModule {}

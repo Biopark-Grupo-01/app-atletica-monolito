@@ -13,6 +13,7 @@ import { AuthModule } from './modules/auth.module';
 import { NewsModule } from './modules/news.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { FirebaseModule } from '@infrastructure/firebase/firebase.module';
+import { GatewayModule } from './modules/gateway/gateway.module';
 import { TrainingUserModule } from './modules/training-user.module';
 import { TrainingModalityModule } from './modules/training-modality.module';
 import { MatchModule } from './modules/match.module';
@@ -37,6 +38,7 @@ import { UploadModule } from './modules/upload.module';
     AuthModule,
     NewsModule,
     NotificationModule,
+    GatewayModule,
     UploadModule,
   ],
   controllers: [],

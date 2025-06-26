@@ -3,7 +3,7 @@ import { TicketController } from '../ticket.controller';
 import { TicketService } from '../../../application/services/ticket.service';
 import { CreateTicketDto } from '../../../application/dtos/create-ticket.dto';
 import { UpdateTicketDto } from '../../../application/dtos/update-ticket.dto';
-import { TicketStatus } from '../../../domain/entities/ticket.entity';
+import { TicketStatusEnum, UserTicketStatusEnum } from '../../../domain/entities/ticket.entity';
 
 describe('TicketController', () => {
   let controller: TicketController;
@@ -14,7 +14,7 @@ describe('TicketController', () => {
     name: 'VIP Ticket',
     description: 'VIP access to event',
     price: 100.00,
-    status: TicketStatus.AVAILABLE,
+    status: TicketStatusEnum.AVAILABLE,
     eventId: 'event-1',
     userId: null,
     purchasedAt: null,
@@ -34,8 +34,7 @@ describe('TicketController', () => {
       update: jest.fn(),
       delete: jest.fn(),
       reserveTicket: jest.fn(),
-      purchaseTicket: jest.fn(),
-      cancelTicket: jest.fn(),
+      updateTicketStatus: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -93,7 +92,7 @@ describe('TicketController', () => {
   describe('findByUserId', () => {
     it('should return tickets for a user', async () => {
       const mockTickets = [
-        { ...mockTicketDto, userId: 'user-1', status: TicketStatus.SOLD },
+        { ...mockTicketDto, userId: 'user-1', status: TicketStatusEnum.AVAILABLE },
       ];
       mockTicketService.findByUserId.mockResolvedValue(mockTickets);
 
@@ -170,8 +169,7 @@ describe('TicketController', () => {
       const reservedTicket = {
         ...mockTicketDto,
         userId: 'user-1',
-        status: TicketStatus.RESERVED,
-      };
+        status: TicketStatusEnum.RESERVED };
       
       mockTicketService.reserveTicket.mockResolvedValue(reservedTicket);
 
@@ -182,37 +180,64 @@ describe('TicketController', () => {
     });
   });
 
-  describe('purchaseTicket', () => {
+  describe('updateTicketStatus', () => {
     it('should purchase a ticket for a user', async () => {
       const purchasedTicket = {
         ...mockTicketDto,
         userId: 'user-1',
-        status: TicketStatus.SOLD,
+        status: TicketStatusEnum.SOLD,
         purchasedAt: new Date(),
       };
       
-      mockTicketService.purchaseTicket.mockResolvedValue(purchasedTicket);
+      mockTicketService.updateTicketStatus.mockResolvedValue(purchasedTicket);
 
-      const result = await controller.purchaseTicket('ticket-1', 'user-1');
+      const result = await controller.updateTicketStatus('ticket-1', {
+        status: 'sold',
+        userId: 'user-1'
+      });
 
       expect(result).toEqual(purchasedTicket);
-      expect(mockTicketService.purchaseTicket).toHaveBeenCalledWith('ticket-1', 'user-1');
+      expect(mockTicketService.updateTicketStatus).toHaveBeenCalledWith('ticket-1', {
+        status: 'sold',
+        userId: 'user-1'
+      });
     });
-  });
 
-  describe('cancelTicket', () => {
     it('should cancel a ticket', async () => {
       const cancelledTicket = {
         ...mockTicketDto,
-        status: TicketStatus.CANCELLED,
+        status: TicketStatusEnum.CANCELLED
       };
       
-      mockTicketService.cancelTicket.mockResolvedValue(cancelledTicket);
+      mockTicketService.updateTicketStatus.mockResolvedValue(cancelledTicket);
 
-      const result = await controller.cancelTicket('ticket-1');
+      const result = await controller.updateTicketStatus('ticket-1', {
+        status: 'cancelled'
+      });
 
       expect(result).toEqual(cancelledTicket);
-      expect(mockTicketService.cancelTicket).toHaveBeenCalledWith('ticket-1');
+      expect(mockTicketService.updateTicketStatus).toHaveBeenCalledWith('ticket-1', {
+        status: 'cancelled'
+      });
+    });
+
+    it('should mark ticket as used', async () => {
+      const usedTicket = {
+        ...mockTicketDto,
+        userStatus: UserTicketStatusEnum.USED,
+        usedAt: new Date(),
+      };
+      
+      mockTicketService.updateTicketStatus.mockResolvedValue(usedTicket);
+
+      const result = await controller.updateTicketStatus('ticket-1', {
+        userStatus: 'used'
+      });
+
+      expect(result).toEqual(usedTicket);
+      expect(mockTicketService.updateTicketStatus).toHaveBeenCalledWith('ticket-1', {
+        userStatus: 'used'
+      });
     });
   });
 });

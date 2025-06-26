@@ -18,6 +18,7 @@ services:
       - DATABASE_PASSWORD=${DATABASE_PASSWORD:-postgres123}
       - DATABASE_NAME=${DATABASE_NAME:-atletica}
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - TICKET_SERVICE_URL=http://ticket-service:3002
     restart: unless-stopped
     depends_on:
       postgres:
