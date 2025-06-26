@@ -7,6 +7,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - '3001:3001'
+    env_file:
+      - ./monolith/.env
     environment:
       - ENVIRONMENT=${ENVIRONMENT:-development}
       - PORT=3001
@@ -15,9 +17,12 @@ services:
       - DATABASE_USER=${DATABASE_USER:-postgres}
       - DATABASE_PASSWORD=${DATABASE_PASSWORD:-postgres123}
       - DATABASE_NAME=${DATABASE_NAME:-atletica}
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
     restart: unless-stopped
     depends_on:
       postgres:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     networks:
       - app-network
@@ -40,6 +45,31 @@ services:
     restart: unless-stopped
     depends_on:
       ticket-postgres:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  notification-service:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    ports:
+      - '3003:3003'
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - PORT=3003
+      - DATABASE_HOST=notification-postgres
+      - DATABASE_PORT=5432
+      - DATABASE_USER=${DATABASE_USER:-postgres}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-postgres123}
+      - DATABASE_NAME=${DATABASE_NAME_NOTIFICATION:-notification_service}
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - RABBITMQ_QUEUE=notifications_queue
+    restart: unless-stopped
+    depends_on:
+      notification-postgres:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     networks:
       - app-network
@@ -82,6 +112,40 @@ services:
     networks:
       - app-network
 
+  notification-postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD:-postgres123}
+      - POSTGRES_USER=${DATABASE_USER:-postgres}
+      - POSTGRES_DB=${DATABASE_NAME_NOTIFICATION:-notification_service}
+    ports:
+      - '5434:5432'
+    volumes:
+      - notification_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DATABASE_USER:-postgres}']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672" # AMQP protocol
+      - "15672:15672" # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq/
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
 networks:
   app-network:
     driver: bridge
@@ -89,3 +153,5 @@ networks:
 volumes:
   postgres_data:
   ticket_postgres_data:
+  notification_postgres_data:
+  rabbitmq_data:

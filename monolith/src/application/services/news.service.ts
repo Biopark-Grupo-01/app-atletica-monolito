@@ -6,12 +6,16 @@ import {
 } from '../../domain/repositories/news.repository.interface';
 import { CreateNewsDto, UpdateNewsDto } from '../dtos/news.dto';
 import { v4 as uuidv4 } from 'uuid';
+import { UserService } from './user.service';
+import { NotificationService } from '../../modules/notification/notification.service';
 
 @Injectable()
 export class NewsService {
   constructor(
     @Inject(NEWS_REPOSITORY)
     private newsRepository: INewsRepository,
+    private readonly userService: UserService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async findAll(): Promise<News[]> {
@@ -32,7 +36,27 @@ export class NewsService {
       ...createNewsDto,
     });
 
-    return this.newsRepository.create(news);
+    const createdNews = await this.newsRepository.create(news);
+
+    const users = await this.userService.findAll();
+    const rolesToExclude = ['DIRECTOR', 'ADMIN'];
+    const usersToNotify = users.filter(
+      (user) => user.role && !rolesToExclude.includes(user.role.name),
+    );
+
+    const fcmTokens = usersToNotify
+      .map((user) => user.fcmToken)
+      .filter((token): token is string => !!token);
+
+    if (fcmTokens.length > 0) {
+      this.notificationService.broadcastNotification(
+        fcmTokens,
+        `Nova Notícia: ${createdNews.title}`,
+        createdNews.description, // Corrected property name
+      );
+    }
+
+    return createdNews;
   }
 
   async update(id: string, updateNewsDto: UpdateNewsDto): Promise<News> {

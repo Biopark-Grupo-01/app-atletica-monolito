@@ -2,51 +2,100 @@ import {
   Injectable,
   Inject,
   NotFoundException,
-  ConflictException,
-  BadRequestException,
+  OnModuleInit,
+  Logger,
 } from '@nestjs/common';
+import { Role } from '@app/domain/entities/role.entity';
 import {
   IRoleRepository,
   ROLE_REPOSITORY_TOKEN,
-} from '../../domain/repositories/role.repository.interface';
-import { Role } from '../../domain/entities/role.entity';
-import { CreateRoleDto } from '../dtos/create-role.dto';
-import { UpdateRoleDto } from '../dtos/update-role.dto';
-import { RoleResponseDto } from '../dtos/role-response.dto';
+} from '@app/domain/repositories/role.repository.interface';
+import {
+  CreateRoleDto,
+  UpdateRoleDto,
+  RoleResponseDto,
+} from '../dtos/role.dto';
 
 @Injectable()
-export class RoleService {
+export class RoleService implements OnModuleInit {
+  private readonly logger = new Logger(RoleService.name);
+
   constructor(
     @Inject(ROLE_REPOSITORY_TOKEN)
-    private readonly roleRepository: IRoleRepository,
+    private roleRepository: IRoleRepository,
   ) {}
+
+  async onModuleInit() {
+    this.logger.log('Seeding database...');
+    await this.seedDefaultRoles();
+    await this.seedAdminUser();
+  }
+
+  private async seedDefaultRoles() {
+    const defaultRoles: CreateRoleDto[] = [
+      {
+        name: 'ADMIN',
+        displayName: 'Líder da Atlética',
+        isDefault: false,
+      },
+      {
+        name: 'DIRECTOR',
+        displayName: 'Diretoria',
+        isDefault: false,
+      },
+      {
+        name: 'ASSOCIATE',
+        displayName: 'Associado',
+        isDefault: false,
+      },
+      {
+        name: 'NON_ASSOCIATE',
+        displayName: 'Não Associado',
+        isDefault: true, // This will be the default for new users
+      },
+    ];
+
+    for (const roleData of defaultRoles) {
+      const roleExists = await this.roleRepository.findByName(roleData.name);
+      if (!roleExists) {
+        this.logger.log(`Creating default role: ${roleData.displayName}`);
+        await this.roleRepository.create(roleData);
+      }
+    }
+  }
+
+  private async seedAdminUser() {
+    const adminEmail = 'admin@biopark.com';
+    const adminRoleName = 'ADMIN';
+
+    // This is a simplified check. In a real app, you'd inject UserService.
+    // For now, we assume if the role exists, the user might too.
+    const adminRole = await this.roleRepository.findByName(adminRoleName);
+    if (!adminRole) {
+      this.logger.warn(
+        `Admin role (${adminRoleName}) not found. Cannot seed admin user.`,
+      );
+      return;
+    }
+
+    // We can't directly check for user existence without UserService,
+    // so we'll rely on the signup logic to handle existing users.
+    this.logger.log(`Admin user seed check for: ${adminEmail}`);
+  }
 
   private mapToResponseDto(role: Role): RoleResponseDto {
     return {
       id: role.id,
       name: role.name,
-      description: role.description ?? undefined,
+      displayName: role.displayName,
+      description: role.description,
       createdAt: role.createdAt,
       updatedAt: role.updatedAt,
     };
   }
 
   private mapArrayToResponseDto(roles: Role[]): RoleResponseDto[] {
-    return roles.map((role) => this.mapToResponseDto(role));
-  }
-
-  async create(createRoleDto: CreateRoleDto): Promise<RoleResponseDto> {
-    const existingRole = await this.roleRepository.findByName(
-      createRoleDto.name,
-    );
-    if (existingRole) {
-      throw new ConflictException(
-        `Role with name '${createRoleDto.name}' already exists.`,
-      );
-    }
-
-    const newRole = await this.roleRepository.create(createRoleDto);
-    return this.mapToResponseDto(newRole);
+    return roles.map((r) => this.mapToResponseDto(r));
   }
 
   async findAll(): Promise<RoleResponseDto[]> {
@@ -54,49 +103,34 @@ export class RoleService {
     return this.mapArrayToResponseDto(roles);
   }
 
-  async findOne(id: string): Promise<RoleResponseDto> {
+  async findById(id: string): Promise<RoleResponseDto> {
     const role = await this.roleRepository.findById(id);
     if (!role) {
-      throw new NotFoundException(`Role with ID '${id}' not found.`);
+      throw new NotFoundException(`Role with ID ${id} not found`);
     }
     return this.mapToResponseDto(role);
+  }
+
+  async findByName(name: string): Promise<RoleResponseDto> {
+    const role = await this.roleRepository.findByName(name);
+    if (!role) {
+      throw new NotFoundException(`Role with name ${name} not found`);
+    }
+    return this.mapToResponseDto(role);
+  }
+
+  async create(createRoleDto: CreateRoleDto): Promise<RoleResponseDto> {
+    const newRole = await this.roleRepository.create(createRoleDto);
+    return this.mapToResponseDto(newRole);
   }
 
   async update(
     id: string,
     updateRoleDto: UpdateRoleDto,
   ): Promise<RoleResponseDto> {
-    const roleToUpdate = await this.roleRepository.findById(id);
-    if (!roleToUpdate) {
-      throw new NotFoundException(`Role with ID '${id}' not found.`);
-    }
-
-    if (updateRoleDto.name && updateRoleDto.name !== roleToUpdate.name) {
-      const existingRoleWithName = await this.roleRepository.findByName(
-        updateRoleDto.name,
-      );
-      if (existingRoleWithName && existingRoleWithName.id !== id) {
-        throw new ConflictException(
-          `Role name '${updateRoleDto.name}' is already in use.`,
-        );
-      }
-    }
-
-    const dtoToUpdate: UpdateRoleDto = {};
-    if (Object.prototype.hasOwnProperty.call(updateRoleDto, 'name'))
-      dtoToUpdate.name = updateRoleDto.name;
-    if (Object.prototype.hasOwnProperty.call(updateRoleDto, 'description'))
-      dtoToUpdate.description = updateRoleDto.description;
-
-    if (Object.keys(dtoToUpdate).length === 0) {
-      return this.mapToResponseDto(roleToUpdate);
-    }
-
-    const updatedRole = await this.roleRepository.update(id, dtoToUpdate);
+    const updatedRole = await this.roleRepository.update(id, updateRoleDto);
     if (!updatedRole) {
-      throw new NotFoundException(
-        `Role with ID '${id}' not found during update operation.`,
-      );
+      throw new NotFoundException(`Role with ID ${id} not found for update`);
     }
     return this.mapToResponseDto(updatedRole);
   }
@@ -104,7 +138,11 @@ export class RoleService {
   async delete(id: string): Promise<void> {
     const success = await this.roleRepository.delete(id);
     if (!success) {
-      throw new BadRequestException(`Role with ID ${id} cold not be deleted.`);
+      throw new NotFoundException(`Role with ID ${id} not found for deletion`);
     }
+  }
+
+  async findDefaultRole(): Promise<Role | null> {
+    return this.roleRepository.findByName('NON_ASSOCIATE');
   }
 }

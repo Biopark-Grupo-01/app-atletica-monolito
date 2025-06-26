@@ -1,29 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '../../../domain/entities/user.entity';
-import { Role } from '../../../domain/entities/role.entity';
-import { IUserRepository } from '../../../domain/repositories/user.repository.interface';
-import { CreateUserDto } from '../../../application/dtos/create-user.dto';
-import { UpdateUserDto } from '../../../application/dtos/update-user.dto';
+import { CreateUserDto, UpdateUserDto } from '@app/application/dtos/user.dto';
+import { User } from '@app/domain/entities/user.entity';
+import { IUserRepository } from '@app/domain/repositories/user.repository.interface';
 
 @Injectable()
 export class TypeOrmUserRepository implements IUserRepository {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    @InjectRepository(Role) // Inject Role repository if needed for relations
-    private readonly roleRepository: Repository<Role>,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
-    const { roleId, ...userData } = createUserDto;
-    const role = await this.roleRepository.findOneBy({ id: roleId });
-    if (!role) {
-      throw new Error('Role not found'); // Or handle as per your app's error strategy
-    }
-    const newUser = this.userRepository.create({ ...userData, role });
-    return this.userRepository.save(newUser);
+  async findAll(): Promise<User[]> {
+    return this.userRepository.find({ relations: ['role'] });
   }
 
   async findById(id: string): Promise<User | null> {
@@ -37,38 +27,27 @@ export class TypeOrmUserRepository implements IUserRepository {
     });
   }
 
-  async findByCpf(cpf: string): Promise<User | null> {
-    return this.userRepository.findOne({ where: { cpf }, relations: ['role'] });
-  }
-
-  async findByGoogleId(googleId: string): Promise<User | null> {
+  async findByFirebaseUid(firebaseUid: string): Promise<User | null> {
     return this.userRepository.findOne({
-      where: { googleId },
+      where: { firebaseUid },
       relations: ['role'],
     });
   }
 
-  async findAll(): Promise<User[]> {
-    return this.userRepository.find({ relations: ['role'] });
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    const user = this.userRepository.create(createUserDto);
+    return this.userRepository.save(user);
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User | null> {
-    const { roleId, ...userData } = updateUserDto;
-    let role: Role | null = null;
-    if (roleId) {
-      role = await this.roleRepository.findOneBy({ id: roleId });
-      if (!role) {
-        throw new Error('Role not found when updating user');
-      }
+    const existingUser = await this.findById(id);
+    if (!existingUser) {
+      return null;
     }
-
-    const updatePayload: Partial<User> = { ...userData };
-    if (role) {
-      updatePayload.role = role;
-    }
-
-    await this.userRepository.update(id, updatePayload);
-    return this.findById(id);
+    // Merge and save to handle potential partial updates and relations
+    this.userRepository.merge(existingUser, updateUserDto as User);
+    await this.userRepository.save(existingUser);
+    return this.findById(id); // Re-fetch to get updated relations
   }
 
   async delete(id: string): Promise<boolean> {

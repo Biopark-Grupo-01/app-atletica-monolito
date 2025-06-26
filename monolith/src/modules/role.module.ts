@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { RoleController } from '../presentation/controllers/role.controller';
-import { RoleService } from '../application/services/role.service';
-import { TypeOrmRoleRepository } from '../infrastructure/typeorm/repositories/typeorm-role.repository';
-import { ROLE_REPOSITORY_TOKEN } from '../domain/repositories/role.repository.interface';
-import { Role } from '../domain/entities/role.entity';
-import { HateoasService } from '../application/services/hateoas.service';
+import { RoleController } from '@app/presentation/controllers/role.controller';
+import { RoleService } from '@app/application/services/role.service';
+import { TypeOrmRoleRepository } from '@infrastructure/typeorm/repositories/typeorm-role.repository';
+import { HateoasService } from '@app/application/services/hateoas.service';
+import { ROLE_REPOSITORY_TOKEN } from '@app/domain/repositories/role.repository.interface';
+import { Role } from '@app/domain/entities/role.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Role])],
