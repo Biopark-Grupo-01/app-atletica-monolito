@@ -13,11 +13,17 @@ export class Role {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
+  @Column({ type: 'varchar', length: 50, unique: true })
   name: string;
 
-  @Column({ type: 'text', nullable: true }) // Ensure description is text
-  description: string | null; // Allow null
+  @Column()
+  displayName: string; // e.g., Administrador, Associado, Não Associado
+
+  @Column({ default: false })
+  isDefault: boolean;
+
+  @Column({ type: 'text', nullable: true })
+  description: string | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
   createdAt: Date;

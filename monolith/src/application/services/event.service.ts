@@ -6,12 +6,16 @@ import {
 } from '../../domain/repositories/event.repository.interface';
 import { CreateEventDto, UpdateEventDto } from '../dtos/event.dto';
 import { v4 as uuidv4 } from 'uuid';
+import { UserService } from './user.service';
+import { NotificationService } from '../../modules/notification/notification.service';
 
 @Injectable()
 export class EventService {
   constructor(
     @Inject(EVENT_REPOSITORY)
     private eventRepository: IEventRepository,
+    private readonly userService: UserService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async findAll(): Promise<Event[]> {
@@ -39,7 +43,27 @@ export class EventService {
       ...createEventDto,
     });
 
-    return this.eventRepository.create(event);
+    const createdEvent = await this.eventRepository.create(event);
+
+    const users = await this.userService.findAll();
+    const rolesToExclude = ['DIRECTOR', 'ADMIN'];
+    const usersToNotify = users.filter(
+      (user) => user.role && !rolesToExclude.includes(user.role.name),
+    );
+
+    const fcmTokens = usersToNotify
+      .map((user) => user.fcmToken)
+      .filter((token): token is string => !!token);
+
+    if (fcmTokens.length > 0) {
+      this.notificationService.broadcastNotification(
+        fcmTokens,
+        `Novo Evento: ${createdEvent.title}`,
+        createdEvent.description,
+      );
+    }
+
+    return createdEvent;
   }
 
   async update(id: string, updateEventDto: UpdateEventDto): Promise<Event> {

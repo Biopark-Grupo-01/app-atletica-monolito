@@ -1,15 +1,17 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { News } from 'src/domain/entities/news.entity';
-import { TypeOrmNewsRepository } from 'src/infrastructure/typeorm/repositories/typeorm-news.repository';
-import { NEWS_REPOSITORY } from 'src/domain/repositories/news.repository.interface';
-import { NewsService } from 'src/application/services/news.service';
-import { NewsController } from 'src/presentation/controllers/news.controller';
-import { HateoasService } from 'src/application/services/hateoas.service';
+import { News } from '../domain/entities/news.entity';
+import { TypeOrmNewsRepository } from '../infrastructure/typeorm/repositories/typeorm-news.repository';
+import { NEWS_REPOSITORY } from '../domain/repositories/news.repository.interface';
+import { NewsService } from '../application/services/news.service';
+import { NewsController } from '../presentation/controllers/news.controller';
+import { HateoasService } from '../application/services/hateoas.service';
+import { UserModule } from './user.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([News])],
+  imports: [TypeOrmModule.forFeature([News]), UserModule, NotificationModule],
   controllers: [NewsController],
   providers: [
     NewsService,
