@@ -4,6 +4,12 @@ export class CreateRoleDto {
   @ApiProperty({ description: 'Role name', example: 'Admin' })
   name: string;
 
+  @ApiProperty({ description: 'Role display name', example: 'Administrator' })
+  displayName: string;
+
+  @ApiProperty({ description: 'Is this role the default one?', example: true })
+  isDefault: boolean;
+
   @ApiPropertyOptional({
     description: 'Role description',
     example: 'Administrator role with full access',
@@ -31,6 +37,9 @@ export class RoleResponseDto {
 
   @ApiProperty({ description: 'Role name', example: 'Admin' })
   name: string;
+
+  @ApiProperty({ description: 'Role display name', example: 'Administrator' })
+  displayName: string;
 
   @ApiPropertyOptional({
     description: 'Role description',

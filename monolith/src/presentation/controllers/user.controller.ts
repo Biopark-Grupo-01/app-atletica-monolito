@@ -23,13 +23,13 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { AuthGuard } from '@nestjs/passport';
+import { FirebaseAuthGuard } from '@app/infrastructure/guards/firebase-auth.guard';
 import { HateoasService } from '@app/application/services/hateoas.service';
 import { Request } from 'express';
 
 @ApiTags('Users')
 @ApiBearerAuth()
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(FirebaseAuthGuard)
 @Controller('users')
 export class UserController {
   constructor(

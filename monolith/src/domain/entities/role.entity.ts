@@ -16,6 +16,12 @@ export class Role {
   @Column({ type: 'varchar', length: 50, unique: true })
   name: string;
 
+  @Column()
+  displayName: string; // e.g., Administrador, Associado, Não Associado
+
+  @Column({ default: false })
+  isDefault: boolean;
+
   @Column({ type: 'text', nullable: true })
   description: string | null;
 
@@ -27,4 +33,8 @@ export class Role {
 
   @OneToMany(() => User, (user) => user.role)
   users: User[];
+
+  constructor(partial: Partial<Role>) {
+    Object.assign(this, partial);
+  }
 }

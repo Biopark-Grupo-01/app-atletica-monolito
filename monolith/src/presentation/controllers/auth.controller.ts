@@ -5,6 +5,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Body,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -22,6 +23,7 @@ interface FirebaseUser extends Request {
   user: {
     uid: string;
     email?: string;
+    fullName?: string;
     name?: string;
     picture?: string;
   };
@@ -35,6 +37,30 @@ export class AuthController {
     private readonly hateoasService: HateoasService,
   ) {}
 
+  private async findOrCreateUser(
+    firebaseUser: FirebaseUser['user'],
+    createUserDto?: Partial<CreateUserDto>,
+  ): Promise<UserResponseDto> {
+    let user = await this.userService.findByFirebaseUid(firebaseUser.uid);
+
+    if (!user) {
+      const newUserDto: CreateUserDto = {
+        firebaseUid: firebaseUser.uid,
+        email: firebaseUser.email!,
+        name:
+          createUserDto?.name ||
+          firebaseUser.fullName ||
+          firebaseUser.name ||
+          firebaseUser.email!.split('@')[0],
+        profilePicture: createUserDto?.profilePicture || firebaseUser.picture,
+        ...createUserDto,
+      };
+      user = await this.userService.create(newUserDto);
+    }
+
+    return user;
+  }
+
   @Post('login/google')
   @UseGuards(FirebaseAuthGuard)
   @ApiBearerAuth()
@@ -47,19 +73,8 @@ export class AuthController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   async googleLogin(@Req() req: FirebaseUser): Promise<UserResponseDto> {
-    const firebaseUser = req.user;
-    let user = await this.userService.findByFirebaseUid(firebaseUser.uid);
-
-    if (!user) {
-      const createUserDto: CreateUserDto = {
-        firebaseUid: firebaseUser.uid,
-        email: firebaseUser.email!,
-        name: firebaseUser.name || 'User',
-        profilePicture: firebaseUser.picture,
-      };
-      user = await this.userService.create(createUserDto);
-    }
-    const baseUrl = `${req.protocol}://${req.get('host')}${req.originalUrl.split('/').slice(0, -2).join('/')}`;
+    const user = await this.findOrCreateUser(req.user);
+    const baseUrl = `${req.protocol}://${req.get('host')}/api`;
     return this.hateoasService.addLinksToItem(user, `${baseUrl}/users`);
   }
 
@@ -75,18 +90,33 @@ export class AuthController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   async emailLogin(@Req() req: FirebaseUser): Promise<UserResponseDto> {
-    const firebaseUser = req.user;
-    let user = await this.userService.findByFirebaseUid(firebaseUser.uid);
+    const user = await this.findOrCreateUser(req.user);
+    const baseUrl = `${req.protocol}://${req.get('host')}/api`;
+    return this.hateoasService.addLinksToItem(user, `${baseUrl}/users`);
+  }
 
-    if (!user) {
-      const createUserDto: CreateUserDto = {
-        firebaseUid: firebaseUser.uid,
-        email: firebaseUser.email!,
-        name: firebaseUser.name || firebaseUser.email!.split('@')[0],
-      };
-      user = await this.userService.create(createUserDto);
-    }
-    const baseUrl = `${req.protocol}://${req.get('host')}${req.originalUrl.split('/').slice(0, -2).join('/')}`;
+  @Post('signup')
+  @UseGuards(FirebaseAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: 'Create a local user profile after Firebase registration',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'User profile successfully created.',
+    type: UserResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized. Invalid Firebase token.',
+  })
+  async signUp(
+    @Req() req: FirebaseUser,
+    @Body() createUserDto: Partial<CreateUserDto>,
+  ): Promise<UserResponseDto> {
+    const user = await this.findOrCreateUser(req.user, createUserDto);
+    const baseUrl = `${req.protocol}://${req.get('host')}/api`;
     return this.hateoasService.addLinksToItem(user, `${baseUrl}/users`);
   }
 }

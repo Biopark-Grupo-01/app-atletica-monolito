@@ -1,26 +1,93 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import {
-  CreateRoleDto,
-  UpdateRoleDto,
-  RoleResponseDto,
-} from '@app/application/dtos/role.dto';
+  Injectable,
+  Inject,
+  NotFoundException,
+  OnModuleInit,
+  Logger,
+} from '@nestjs/common';
+import { Role } from '@app/domain/entities/role.entity';
 import {
   IRoleRepository,
   ROLE_REPOSITORY_TOKEN,
 } from '@app/domain/repositories/role.repository.interface';
-import { Role } from '@app/domain/entities/role.entity';
+import {
+  CreateRoleDto,
+  UpdateRoleDto,
+  RoleResponseDto,
+} from '../dtos/role.dto';
 
 @Injectable()
-export class RoleService {
+export class RoleService implements OnModuleInit {
+  private readonly logger = new Logger(RoleService.name);
+
   constructor(
     @Inject(ROLE_REPOSITORY_TOKEN)
     private roleRepository: IRoleRepository,
   ) {}
 
+  async onModuleInit() {
+    this.logger.log('Seeding database...');
+    await this.seedDefaultRoles();
+    await this.seedAdminUser();
+  }
+
+  private async seedDefaultRoles() {
+    const defaultRoles: CreateRoleDto[] = [
+      {
+        name: 'ADMIN',
+        displayName: 'Líder da Atlética',
+        isDefault: false,
+      },
+      {
+        name: 'DIRECTOR',
+        displayName: 'Diretoria',
+        isDefault: false,
+      },
+      {
+        name: 'ASSOCIATE',
+        displayName: 'Associado',
+        isDefault: false,
+      },
+      {
+        name: 'NON_ASSOCIATE',
+        displayName: 'Não Associado',
+        isDefault: true, // This will be the default for new users
+      },
+    ];
+
+    for (const roleData of defaultRoles) {
+      const roleExists = await this.roleRepository.findByName(roleData.name);
+      if (!roleExists) {
+        this.logger.log(`Creating default role: ${roleData.displayName}`);
+        await this.roleRepository.create(roleData);
+      }
+    }
+  }
+
+  private async seedAdminUser() {
+    const adminEmail = 'admin@biopark.com';
+    const adminRoleName = 'ADMIN';
+
+    // This is a simplified check. In a real app, you'd inject UserService.
+    // For now, we assume if the role exists, the user might too.
+    const adminRole = await this.roleRepository.findByName(adminRoleName);
+    if (!adminRole) {
+      this.logger.warn(
+        `Admin role (${adminRoleName}) not found. Cannot seed admin user.`,
+      );
+      return;
+    }
+
+    // We can't directly check for user existence without UserService,
+    // so we'll rely on the signup logic to handle existing users.
+    this.logger.log(`Admin user seed check for: ${adminEmail}`);
+  }
+
   private mapToResponseDto(role: Role): RoleResponseDto {
     return {
       id: role.id,
       name: role.name,
+      displayName: role.displayName,
       description: role.description,
       createdAt: role.createdAt,
       updatedAt: role.updatedAt,
@@ -73,5 +140,9 @@ export class RoleService {
     if (!success) {
       throw new NotFoundException(`Role with ID ${id} not found for deletion`);
     }
+  }
+
+  async findDefaultRole(): Promise<Role | null> {
+    return this.roleRepository.findByName('NON_ASSOCIATE');
   }
 }

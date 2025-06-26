@@ -21,7 +21,7 @@ export class TypeOrmRoleRepository implements IRoleRepository {
   }
 
   async findByName(name: string): Promise<Role | null> {
-    return this.roleRepository.findOneBy({ name });
+    return this.roleRepository.findOne({ where: { name } });
   }
 
   async create(createRoleDto: CreateRoleDto): Promise<Role> {

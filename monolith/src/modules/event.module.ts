@@ -6,9 +6,11 @@ import { EVENT_REPOSITORY } from '../domain/repositories/event.repository.interf
 import { TypeOrmEventRepository } from '../infrastructure/typeorm/repositories/typeorm-event.repository';
 import { Event } from '../domain/entities/event.entity';
 import { HateoasService } from '../application/services/hateoas.service';
+import { UserModule } from './user.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Event])],
+  imports: [TypeOrmModule.forFeature([Event]), UserModule, NotificationModule],
   controllers: [EventController],
   providers: [
     EventService,
