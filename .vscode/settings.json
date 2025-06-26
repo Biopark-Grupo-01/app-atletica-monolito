@@ -10,6 +10,17 @@
       "database": "atletica",
       "username": "postgres",
       "password": "postgres123"
+    },
+    {
+      "previewLimit": 50,
+      "server": "localhost",
+      "port": 5433,
+      "driver": "PostgreSQL",
+      "name": "Ticket",
+      "group": "Bpk",
+      "database": "ticket_service",
+      "username": "postgres",
+      "password": "postgres123"
     }
   ]
 }

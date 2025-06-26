@@ -32,11 +32,11 @@ export class TicketService {
 
   async findById(id: string): Promise<TicketResponseDto> {
     const ticket = await this.ticketRepository.findById(id);
-    
+
     if (!ticket) {
       throw new NotFoundException(`Ticket with ID ${id} not found`);
     }
-    
+
     const dto = this.mapToDto(ticket);
     return this.hateoasService.addLinksToTicket(dto);
   }
@@ -59,7 +59,7 @@ export class TicketService {
     return this.hateoasService.createCollectionResponse(dtos);
   }
 
-  async findByUserId(userId: string): Promise<TicketResponseDto[]> {
+  async findByUserId(userId: string): Promise<{ data: TicketResponseDto[]; _links: any[] }> {
     // Verificar se o usuário existe no monolito usando o novo endpoint com prefixo /api
     try {
       console.log(`Verificando usuário ${userId} no monolith: ${this.monolithServiceUrl}/api/microservices/users/exists/${userId}`);
@@ -73,10 +73,11 @@ export class TicketService {
     }
 
     const tickets = await this.ticketRepository.findByUserId(userId);
-    return tickets.map(ticket => this.mapToDto(ticket));
+    const dtos = tickets.map(ticket => this.mapToDto(ticket));
+    return this.hateoasService.createCollectionResponse(dtos);
   }
 
-  async findAvailableByEventId(eventId: string): Promise<TicketResponseDto[]> {
+  async findAvailableByEventId(eventId: string): Promise<{ data: TicketResponseDto[]; _links: any[] }> {
     // Verificar se o evento existe
     try {
       await firstValueFrom(
@@ -85,9 +86,10 @@ export class TicketService {
     } catch (error) {
       throw new NotFoundException(`Event with ID ${eventId} not found`);
     }
-    
+
     const tickets = await this.ticketRepository.findAvailableByEventId(eventId);
-    return tickets.map(ticket => this.mapToDto(ticket));
+    const dtos = tickets.map(ticket => this.mapToDto(ticket));
+    return this.hateoasService.createCollectionResponse(dtos);
   }
 
   async create(createTicketDto: CreateTicketDto): Promise<TicketResponseDto> {
@@ -107,7 +109,7 @@ export class TicketService {
       ...createTicketDto,
       status: TicketStatusEnum.AVAILABLE
     });
-    
+
     const createdTicket = await this.ticketRepository.create(ticket);
     const dto = this.mapToDto(createdTicket);
     return this.hateoasService.addLinksToTicket(dto);
@@ -115,11 +117,11 @@ export class TicketService {
 
   async update(id: string, updateTicketDto: UpdateTicketDto): Promise<TicketResponseDto> {
     const existingTicket = await this.ticketRepository.findById(id);
-    
+
     if (!existingTicket) {
       throw new NotFoundException(`Ticket with ID ${id} not found`);
     }
-    
+
     if (updateTicketDto.eventId && updateTicketDto.eventId !== existingTicket.eventId) {
       try {
         await firstValueFrom(
@@ -129,28 +131,29 @@ export class TicketService {
         throw new NotFoundException(`Event with ID ${updateTicketDto.eventId} not found`);
       }
     }
-    
+
     const updatedTicket = await this.ticketRepository.update(id, updateTicketDto);
-    return this.mapToDto(updatedTicket);
+    const dto = this.mapToDto(updatedTicket);
+    return this.hateoasService.addLinksToTicket(dto);
   }
 
   async delete(id: string): Promise<void> {
     const existingTicket = await this.ticketRepository.findById(id);
-    
+
     if (!existingTicket) {
       throw new NotFoundException(`Ticket with ID ${id} not found`);
     }
-    
+
     await this.ticketRepository.delete(id);
   }
 
   async reserveTicket(id: string, userId: string): Promise<TicketResponseDto> {
     const ticket = await this.ticketRepository.findById(id);
-    
+
     if (!ticket) {
       throw new NotFoundException(`Ticket with ID ${id} not found`);
     }
-    
+
     try {
       await firstValueFrom(
         this.httpService.get(`${this.monolithServiceUrl}/api/microservices/users/exists/${userId}`)
@@ -158,7 +161,7 @@ export class TicketService {
     } catch (error) {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
-    
+
     ticket.reserve(userId);
     const updatedTicket = await this.ticketRepository.update(id, ticket);
     return this.mapToDto(updatedTicket);
@@ -166,11 +169,11 @@ export class TicketService {
 
   async purchaseTicket(id: string, userId: string): Promise<TicketResponseDto> {
     const ticket = await this.ticketRepository.findById(id);
-    
+
     if (!ticket) {
       throw new NotFoundException(`Ticket with ID ${id} not found`);
     }
-    
+
     try {
       await firstValueFrom(
         this.httpService.get(`${this.monolithServiceUrl}/api/microservices/users/exists/${userId}`)
@@ -178,7 +181,7 @@ export class TicketService {
     } catch (error) {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
-    
+
     ticket.purchase(userId);
     const updatedTicket = await this.ticketRepository.update(id, ticket);
     return this.mapToDto(updatedTicket);
@@ -186,11 +189,11 @@ export class TicketService {
 
   async cancelTicket(id: string): Promise<TicketResponseDto> {
     const ticket = await this.ticketRepository.findById(id);
-    
+
     if (!ticket) {
       throw new NotFoundException(`Ticket with ID ${id} not found`);
     }
-    
+
     ticket.cancel();
     const updatedTicket = await this.ticketRepository.update(id, ticket);
     const dto = this.mapToDto(updatedTicket);
@@ -199,11 +202,11 @@ export class TicketService {
 
   async useTicket(id: string): Promise<TicketResponseDto> {
     const ticket = await this.ticketRepository.findById(id);
-    
+
     if (!ticket) {
       throw new NotFoundException(`Ticket with ID ${id} not found`);
     }
-    
+
     ticket.use();
     const updatedTicket = await this.ticketRepository.update(id, ticket);
     const dto = this.mapToDto(updatedTicket);
@@ -211,11 +214,11 @@ export class TicketService {
   }
 
   async updateTicketStatus(
-    id: string, 
+    id: string,
     updateData: { status?: string; userStatus?: string; userId?: string }
   ): Promise<TicketResponseDto> {
     const ticket = await this.ticketRepository.findById(id);
-    
+
     if (!ticket) {
       throw new NotFoundException(`Ticket with ID ${id} not found`);
     }
@@ -257,12 +260,12 @@ export class TicketService {
         throw new BadRequestException(`Invalid userStatus: ${updateData.userStatus}`);
       }
       ticket.userStatus = updateData.userStatus as UserTicketStatusEnum;
-      
+
       // Marcar como usado se userStatus for 'used'
       if (updateData.userStatus === UserTicketStatusEnum.USED) {
         ticket.usedAt = new Date();
       }
-      
+
       ticket.updatedAt = new Date();
     }
 
@@ -278,9 +281,12 @@ export class TicketService {
     dto.description = ticket.description;
     dto.price = ticket.price;
     dto.status = ticket.status;
+    dto.userStatus = ticket.userStatus;
     dto.eventId = ticket.eventId;
     dto.userId = ticket.userId;
     dto.purchasedAt = ticket.purchasedAt;
+    dto.usedAt = ticket.usedAt;
+    dto.expiresAt = ticket.expiresAt;
     dto.createdAt = ticket.createdAt;
     dto.updatedAt = ticket.updatedAt;
     return dto;

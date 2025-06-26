@@ -58,6 +58,20 @@ export class TicketResponseDto {
   purchasedAt?: Date;
 
   @ApiProperty({
+    description: 'Data de uso do ticket',
+    example: '2023-12-01T18:30:00Z',
+    required: false,
+  })
+  usedAt?: Date;
+
+  @ApiProperty({
+    description: 'Data de expiração do ticket',
+    example: '2023-12-31T23:59:59Z',
+    required: false,
+  })
+  expiresAt?: Date;
+
+  @ApiProperty({
     description: 'Data de criação',
     example: '2023-12-01T10:00:00Z',
   })

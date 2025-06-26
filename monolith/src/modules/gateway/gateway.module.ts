@@ -8,5 +8,6 @@ import { TicketGatewayService } from './services/ticket-gateway.service';
   imports: [HttpModule, ConfigModule],
   controllers: [TicketGatewayController],
   providers: [TicketGatewayService],
+  exports: [TicketGatewayService],
 })
 export class GatewayModule {}

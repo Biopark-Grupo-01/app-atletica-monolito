@@ -24,12 +24,12 @@ export class TicketController {
   }
 
   @Get('user/:userId')
-  async findByUserId(@Param('userId') userId: string): Promise<TicketResponseDto[]> {
+  async findByUserId(@Param('userId') userId: string): Promise<{ data: TicketResponseDto[]; _links: any[] }> {
     return this.ticketService.findByUserId(userId);
   }
-  
+
   @Get('event/:eventId/available')
-  async findAvailableByEventId(@Param('eventId') eventId: string): Promise<TicketResponseDto[]> {
+  async findAvailableByEventId(@Param('eventId') eventId: string): Promise<{ data: TicketResponseDto[]; _links: any[] }> {
     return this.ticketService.findAvailableByEventId(eventId);
   }
 
