@@ -1,9 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   Injectable,
   Inject,
   NotFoundException,
   ConflictException,
   BadRequestException,
+  Logger,
+  OnModuleInit,
 } from '@nestjs/common';
 import {
   IProductCategoryRepository,
@@ -15,11 +18,52 @@ import { UpdateProductCategoryDto } from '../dtos/update-product-category.dto';
 import { ProductCategoryResponseDto } from '../dtos/product-category-response.dto';
 
 @Injectable()
-export class ProductCategoryService {
+export class ProductCategoryService implements OnModuleInit {
+  private readonly logger = new Logger(ProductCategoryService.name);
+
   constructor(
     @Inject(PRODUCT_CATEGORY_REPOSITORY_TOKEN)
     private readonly categoryRepository: IProductCategoryRepository,
   ) {}
+
+  async onModuleInit() {
+    this.logger.log('Populando categorias de produtos...');
+    await this.seedDefaultProductCategories();
+  }
+
+  private async seedDefaultProductCategories() {
+    const defaultCategories: CreateProductCategoryDto[] = [
+      {
+        name: 'Roupas',
+        icon: 'checkroom',
+      },
+      {
+        name: 'Canecas',
+        icon: 'local_cafe',
+      },
+      {
+        name: 'Chaveiros',
+        icon: 'key',
+      },
+      {
+        name: 'Tatuagens',
+        icon: 'brush',
+      },
+    ];
+
+    for (const categoryData of defaultCategories) {
+      const categoryExists = await this.categoryRepository.findByName(
+        categoryData.name,
+      );
+      if (!categoryExists) {
+        this.logger.log(
+          `Criando categoria de produto padrão: ${categoryData.name}`,
+        );
+        const newCategory = new ProductCategory(categoryData);
+        await this.categoryRepository.create(newCategory);
+      }
+    }
+  }
 
   private mapToResponseDto(
     category: ProductCategory,
