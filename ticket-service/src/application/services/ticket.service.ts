@@ -1,12 +1,13 @@
-import { Injectable, NotFoundException, Inject } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Inject } from '@nestjs/common';
 import { ITicketRepository } from '../../domain/repositories/ticket.repository.interface';
 import { CreateTicketDto } from '../dtos/create-ticket.dto';
 import { UpdateTicketDto } from '../dtos/update-ticket.dto';
-import { Ticket, TicketStatus } from '../../domain/entities/ticket.entity';
+import { Ticket, TicketStatus, TicketStatusEnum, UserTicketStatusEnum } from '../../domain/entities/ticket.entity';
 import { TicketResponseDto } from '../dtos/ticket-response.dto';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
+import { HateoasService } from './hateoas.service';
 
 @Injectable()
 export class TicketService {
@@ -17,27 +18,30 @@ export class TicketService {
     private readonly ticketRepository: ITicketRepository,
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
+    private readonly hateoasService: HateoasService,
   ) {
     this.monolithServiceUrl = this.configService.get<string>('MONOLITH_SERVICE_URL');
     console.log(`Monolith service URL configured as: ${this.monolithServiceUrl}`);
   }
 
-  async findAll(): Promise<TicketResponseDto[]> {
+  async findAll(): Promise<{ data: TicketResponseDto[]; _links: any[] }> {
     const tickets = await this.ticketRepository.findAll();
-    return tickets.map(ticket => this.mapToDto(ticket));
+    const dtos = tickets.map(ticket => this.mapToDto(ticket));
+    return this.hateoasService.createCollectionResponse(dtos);
   }
 
   async findById(id: string): Promise<TicketResponseDto> {
     const ticket = await this.ticketRepository.findById(id);
-    
+
     if (!ticket) {
       throw new NotFoundException(`Ticket with ID ${id} not found`);
     }
-    
-    return this.mapToDto(ticket);
+
+    const dto = this.mapToDto(ticket);
+    return this.hateoasService.addLinksToTicket(dto);
   }
 
-  async findByEventId(eventId: string): Promise<TicketResponseDto[]> {
+  async findByEventId(eventId: string): Promise<{ data: TicketResponseDto[]; _links: any[] }> {
     // Verificar se o evento existe no monolito usando o novo endpoint com prefixo /api
     try {
       console.log(`Verificando evento ${eventId} no monolith: ${this.monolithServiceUrl}/api/microservices/events/exists/${eventId}`);
@@ -51,10 +55,11 @@ export class TicketService {
     }
 
     const tickets = await this.ticketRepository.findByEventId(eventId);
-    return tickets.map(ticket => this.mapToDto(ticket));
+    const dtos = tickets.map(ticket => this.mapToDto(ticket));
+    return this.hateoasService.createCollectionResponse(dtos);
   }
 
-  async findByUserId(userId: string): Promise<TicketResponseDto[]> {
+  async findByUserId(userId: string): Promise<{ data: TicketResponseDto[]; _links: any[] }> {
     // Verificar se o usuário existe no monolito usando o novo endpoint com prefixo /api
     try {
       console.log(`Verificando usuário ${userId} no monolith: ${this.monolithServiceUrl}/api/microservices/users/exists/${userId}`);
@@ -68,10 +73,11 @@ export class TicketService {
     }
 
     const tickets = await this.ticketRepository.findByUserId(userId);
-    return tickets.map(ticket => this.mapToDto(ticket));
+    const dtos = tickets.map(ticket => this.mapToDto(ticket));
+    return this.hateoasService.createCollectionResponse(dtos);
   }
 
-  async findAvailableByEventId(eventId: string): Promise<TicketResponseDto[]> {
+  async findAvailableByEventId(eventId: string): Promise<{ data: TicketResponseDto[]; _links: any[] }> {
     // Verificar se o evento existe
     try {
       await firstValueFrom(
@@ -80,9 +86,10 @@ export class TicketService {
     } catch (error) {
       throw new NotFoundException(`Event with ID ${eventId} not found`);
     }
-    
+
     const tickets = await this.ticketRepository.findAvailableByEventId(eventId);
-    return tickets.map(ticket => this.mapToDto(ticket));
+    const dtos = tickets.map(ticket => this.mapToDto(ticket));
+    return this.hateoasService.createCollectionResponse(dtos);
   }
 
   async create(createTicketDto: CreateTicketDto): Promise<TicketResponseDto> {
@@ -100,20 +107,21 @@ export class TicketService {
 
     const ticket = new Ticket({
       ...createTicketDto,
-      status: TicketStatus.AVAILABLE
+      status: TicketStatusEnum.AVAILABLE
     });
-    
+
     const createdTicket = await this.ticketRepository.create(ticket);
-    return this.mapToDto(createdTicket);
+    const dto = this.mapToDto(createdTicket);
+    return this.hateoasService.addLinksToTicket(dto);
   }
 
   async update(id: string, updateTicketDto: UpdateTicketDto): Promise<TicketResponseDto> {
     const existingTicket = await this.ticketRepository.findById(id);
-    
+
     if (!existingTicket) {
       throw new NotFoundException(`Ticket with ID ${id} not found`);
     }
-    
+
     if (updateTicketDto.eventId && updateTicketDto.eventId !== existingTicket.eventId) {
       try {
         await firstValueFrom(
@@ -123,28 +131,29 @@ export class TicketService {
         throw new NotFoundException(`Event with ID ${updateTicketDto.eventId} not found`);
       }
     }
-    
+
     const updatedTicket = await this.ticketRepository.update(id, updateTicketDto);
-    return this.mapToDto(updatedTicket);
+    const dto = this.mapToDto(updatedTicket);
+    return this.hateoasService.addLinksToTicket(dto);
   }
 
   async delete(id: string): Promise<void> {
     const existingTicket = await this.ticketRepository.findById(id);
-    
+
     if (!existingTicket) {
       throw new NotFoundException(`Ticket with ID ${id} not found`);
     }
-    
+
     await this.ticketRepository.delete(id);
   }
 
   async reserveTicket(id: string, userId: string): Promise<TicketResponseDto> {
     const ticket = await this.ticketRepository.findById(id);
-    
+
     if (!ticket) {
       throw new NotFoundException(`Ticket with ID ${id} not found`);
     }
-    
+
     try {
       await firstValueFrom(
         this.httpService.get(`${this.monolithServiceUrl}/api/microservices/users/exists/${userId}`)
@@ -152,7 +161,7 @@ export class TicketService {
     } catch (error) {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
-    
+
     ticket.reserve(userId);
     const updatedTicket = await this.ticketRepository.update(id, ticket);
     return this.mapToDto(updatedTicket);
@@ -160,11 +169,11 @@ export class TicketService {
 
   async purchaseTicket(id: string, userId: string): Promise<TicketResponseDto> {
     const ticket = await this.ticketRepository.findById(id);
-    
+
     if (!ticket) {
       throw new NotFoundException(`Ticket with ID ${id} not found`);
     }
-    
+
     try {
       await firstValueFrom(
         this.httpService.get(`${this.monolithServiceUrl}/api/microservices/users/exists/${userId}`)
@@ -172,7 +181,7 @@ export class TicketService {
     } catch (error) {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
-    
+
     ticket.purchase(userId);
     const updatedTicket = await this.ticketRepository.update(id, ticket);
     return this.mapToDto(updatedTicket);
@@ -180,14 +189,89 @@ export class TicketService {
 
   async cancelTicket(id: string): Promise<TicketResponseDto> {
     const ticket = await this.ticketRepository.findById(id);
-    
+
     if (!ticket) {
       throw new NotFoundException(`Ticket with ID ${id} not found`);
     }
-    
+
     ticket.cancel();
     const updatedTicket = await this.ticketRepository.update(id, ticket);
-    return this.mapToDto(updatedTicket);
+    const dto = this.mapToDto(updatedTicket);
+    return this.hateoasService.addLinksToTicket(dto);
+  }
+
+  async useTicket(id: string): Promise<TicketResponseDto> {
+    const ticket = await this.ticketRepository.findById(id);
+
+    if (!ticket) {
+      throw new NotFoundException(`Ticket with ID ${id} not found`);
+    }
+
+    ticket.use();
+    const updatedTicket = await this.ticketRepository.update(id, ticket);
+    const dto = this.mapToDto(updatedTicket);
+    return this.hateoasService.addLinksToTicket(dto);
+  }
+
+  async updateTicketStatus(
+    id: string,
+    updateData: { status?: string; userStatus?: string; userId?: string }
+  ): Promise<TicketResponseDto> {
+    const ticket = await this.ticketRepository.findById(id);
+
+    if (!ticket) {
+      throw new NotFoundException(`Ticket with ID ${id} not found`);
+    }
+
+    // Atualizar status do ticket se fornecido
+    if (updateData.status) {
+      switch (updateData.status.toLowerCase()) {
+        case 'reserved':
+          if (!updateData.userId) {
+            throw new BadRequestException('userId is required for reserving ticket');
+          }
+          ticket.reserve(updateData.userId);
+          break;
+        case 'sold':
+        case 'purchased':
+          if (!updateData.userId) {
+            throw new BadRequestException('userId is required for purchasing ticket');
+          }
+          ticket.purchase(updateData.userId);
+          break;
+        case 'cancelled':
+          ticket.cancel();
+          break;
+        case 'used':
+          ticket.use();
+          break;
+        case 'available':
+          ticket.makeAvailable();
+          break;
+        default:
+          throw new BadRequestException(`Invalid status: ${updateData.status}`);
+      }
+    }
+
+    // Atualizar userStatus diretamente se fornecido
+    if (updateData.userStatus) {
+      const validUserStatuses = Object.values(UserTicketStatusEnum);
+      if (!validUserStatuses.includes(updateData.userStatus as UserTicketStatusEnum)) {
+        throw new BadRequestException(`Invalid userStatus: ${updateData.userStatus}`);
+      }
+      ticket.userStatus = updateData.userStatus as UserTicketStatusEnum;
+
+      // Marcar como usado se userStatus for 'used'
+      if (updateData.userStatus === UserTicketStatusEnum.USED) {
+        ticket.usedAt = new Date();
+      }
+
+      ticket.updatedAt = new Date();
+    }
+
+    const updatedTicket = await this.ticketRepository.update(id, ticket);
+    const dto = this.mapToDto(updatedTicket);
+    return this.hateoasService.addLinksToTicket(dto);
   }
 
   private mapToDto(ticket: Ticket): TicketResponseDto {
@@ -197,9 +281,12 @@ export class TicketService {
     dto.description = ticket.description;
     dto.price = ticket.price;
     dto.status = ticket.status;
+    dto.userStatus = ticket.userStatus;
     dto.eventId = ticket.eventId;
     dto.userId = ticket.userId;
     dto.purchasedAt = ticket.purchasedAt;
+    dto.usedAt = ticket.usedAt;
+    dto.expiresAt = ticket.expiresAt;
     dto.createdAt = ticket.createdAt;
     dto.updatedAt = ticket.updatedAt;
     return dto;

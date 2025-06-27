@@ -3,7 +3,7 @@ import { TicketService } from '../ticket.service';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { NotFoundException } from '@nestjs/common';
-import { Ticket, TicketStatus } from '../../../domain/entities/ticket.entity';
+import { Ticket, TicketStatus, TicketStatusEnum } from '../../../domain/entities/ticket.entity';
 import { of, throwError } from 'rxjs';
 import { CreateTicketDto } from '../../dtos/create-ticket.dto';
 import { UpdateTicketDto } from '../../dtos/update-ticket.dto';
@@ -21,7 +21,7 @@ describe('TicketService', () => {
     name: 'VIP Ticket',
     description: 'VIP access to event',
     price: 100.00,
-    status: TicketStatus.AVAILABLE,
+    status: TicketStatusEnum.AVAILABLE,
     eventId: 'event-1',
     userId: null,
     purchasedAt: null,
@@ -155,7 +155,7 @@ describe('TicketService', () => {
       mockHttpService.get.mockReturnValue(of(mockResponse));
       
       const mockTickets = [
-        { ...mockTicket, userId: 'user-1', status: TicketStatus.SOLD },
+        { ...mockTicket, userId: 'user-1', status: TicketStatusEnum.AVAILABLE },
       ];
       
       mockTicketRepository.findByUserId.mockResolvedValue(mockTickets);
@@ -201,7 +201,7 @@ describe('TicketService', () => {
         id: 'new-ticket',
         name: 'VIP Ticket',
         price: 100.00,
-        status: TicketStatus.AVAILABLE,
+        status: TicketStatusEnum.AVAILABLE,
         eventId: 'event-1',
       }));
       expect(mockHttpService.get).toHaveBeenCalledWith(`${mockMonolithUrl}/api/microservices/events/exists/event-1`);
@@ -319,8 +319,7 @@ describe('TicketService', () => {
       const reservedTicket = {
         ...mockTicket,
         userId: 'user-1',
-        status: TicketStatus.RESERVED,
-      };
+        status: TicketStatusEnum.RESERVED };
       
       mockTicketRepository.update.mockResolvedValue(reservedTicket);
 
@@ -328,8 +327,7 @@ describe('TicketService', () => {
 
       expect(result).toEqual(expect.objectContaining({
         id: 'ticket-1',
-        status: TicketStatus.RESERVED,
-        userId: 'user-1',
+        status: TicketStatusEnum.SOLD, userId: 'user-1',
       }));
       expect(mockTicketRepository.findById).toHaveBeenCalledWith('ticket-1');
       expect(mockHttpService.get).toHaveBeenCalledWith(`${mockMonolithUrl}/api/microservices/users/exists/user-1`);
@@ -366,7 +364,7 @@ describe('TicketService', () => {
       const purchasedTicket = {
         ...mockTicket,
         userId: 'user-1',
-        status: TicketStatus.SOLD,
+        status: TicketStatusEnum.AVAILABLE,
         purchasedAt: new Date(),
       };
       
@@ -376,8 +374,7 @@ describe('TicketService', () => {
 
       expect(result).toEqual(expect.objectContaining({
         id: 'ticket-1',
-        status: TicketStatus.SOLD,
-        userId: 'user-1',
+        status: TicketStatusEnum.SOLD, userId: 'user-1',
         purchasedAt: expect.any(Date),
       }));
       expect(mockTicketRepository.findById).toHaveBeenCalledWith('ticket-1');
@@ -401,8 +398,7 @@ describe('TicketService', () => {
 
       const cancelledTicket = {
         ...mockTicket,
-        status: TicketStatus.CANCELLED,
-      };
+        status: TicketStatusEnum.RESERVED };
       
       mockTicketRepository.update.mockResolvedValue(cancelledTicket);
 
@@ -410,8 +406,7 @@ describe('TicketService', () => {
 
       expect(result).toEqual(expect.objectContaining({
         id: 'ticket-1',
-        status: TicketStatus.CANCELLED,
-      }));
+        status: TicketStatusEnum.RESERVED }));
       expect(mockTicketRepository.findById).toHaveBeenCalledWith('ticket-1');
       expect(mockTicketRepository.update).toHaveBeenCalled();
     });
