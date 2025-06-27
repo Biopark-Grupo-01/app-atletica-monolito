@@ -34,6 +34,12 @@ export class CreateEventDto {
     default: EventType.OTHER,
   })
   type: EventType;
+
+  @ApiPropertyOptional({
+    description: 'Event image URL',
+    example: '/uploads/events/event-123e4567-e89b-12d3-a456-426614174000.jpg',
+  })
+  imageUrl?: string;
 }
 
 export class UpdateEventDto {
@@ -70,6 +76,12 @@ export class UpdateEventDto {
     example: EventType.PARTY,
   })
   type?: EventType;
+
+  @ApiPropertyOptional({
+    description: 'Event image URL',
+    example: '/uploads/events/event-123e4567-e89b-12d3-a456-426614174000.jpg',
+  })
+  imageUrl?: string;
 }
 
 export class EventResponseDto {
@@ -109,6 +121,12 @@ export class EventResponseDto {
     example: EventType.PARTY,
   })
   type: EventType;
+
+  @ApiPropertyOptional({
+    description: 'Event image URL',
+    example: '/uploads/events/event-123e4567-e89b-12d3-a456-426614174000.jpg',
+  })
+  imageUrl?: string;
 
   @ApiProperty({
     description: 'Creation date',

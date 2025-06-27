@@ -8,6 +8,7 @@ import { CreateEventDto, UpdateEventDto } from '../dtos/event.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { UserService } from './user.service';
 import { NotificationService } from '../../modules/notification/notification.service';
+import { TicketGatewayService } from '../../modules/gateway/services/ticket-gateway.service';
 
 @Injectable()
 export class EventService {
@@ -16,6 +17,7 @@ export class EventService {
     private eventRepository: IEventRepository,
     private readonly userService: UserService,
     private readonly notificationService: NotificationService,
+    private readonly ticketGatewayService: TicketGatewayService,
   ) {}
 
   async findAll(): Promise<Event[]> {
@@ -44,6 +46,29 @@ export class EventService {
     });
 
     const createdEvent = await this.eventRepository.create(event);
+
+    // Criar ticket automaticamente para o evento
+    try {
+      const ticketData = {
+        name: `Ingresso - ${createdEvent.title}`,
+        description: `Ingresso para o evento: ${createdEvent.description}`,
+        price: Number(createdEvent.price) || 0, // Garantir que seja número
+        eventId: createdEvent.id,
+      };
+
+      for (let i = 0; i < 50; i++) {
+        await this.ticketGatewayService.proxyRequest('POST', '', ticketData);
+      }
+      console.log(
+        `Ticket criado automaticamente para o evento: ${createdEvent.title}`,
+      );
+    } catch (error) {
+      console.error(
+        `Erro ao criar ticket para o evento ${createdEvent.title}:`,
+        error,
+      );
+      // Não falha a criação do evento se o ticket falhar
+    }
 
     const users = await this.userService.findAll();
     const rolesToExclude = ['DIRECTOR', 'ADMIN'];

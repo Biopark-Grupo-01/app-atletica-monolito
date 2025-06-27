@@ -8,9 +8,15 @@ import { Event } from '../domain/entities/event.entity';
 import { HateoasService } from '../application/services/hateoas.service';
 import { UserModule } from './user.module';
 import { NotificationModule } from './notification/notification.module';
+import { GatewayModule } from './gateway/gateway.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Event]), UserModule, NotificationModule],
+  imports: [
+    TypeOrmModule.forFeature([Event]),
+    UserModule,
+    NotificationModule,
+    GatewayModule,
+  ],
   controllers: [EventController],
   providers: [
     EventService,

@@ -9,7 +9,7 @@ export class TicketController {
   constructor(private readonly ticketService: TicketService) {}
 
   @Get()
-  async findAll(): Promise<TicketResponseDto[]> {
+  async findAll(): Promise<{ data: TicketResponseDto[]; _links: any[] }> {
     return this.ticketService.findAll();
   }
 
@@ -19,17 +19,17 @@ export class TicketController {
   }
 
   @Get('event/:eventId')
-  async findByEventId(@Param('eventId') eventId: string): Promise<TicketResponseDto[]> {
+  async findByEventId(@Param('eventId') eventId: string): Promise<{ data: TicketResponseDto[]; _links: any[] }> {
     return this.ticketService.findByEventId(eventId);
   }
 
   @Get('user/:userId')
-  async findByUserId(@Param('userId') userId: string): Promise<TicketResponseDto[]> {
+  async findByUserId(@Param('userId') userId: string): Promise<{ data: TicketResponseDto[]; _links: any[] }> {
     return this.ticketService.findByUserId(userId);
   }
-  
+
   @Get('event/:eventId/available')
-  async findAvailableByEventId(@Param('eventId') eventId: string): Promise<TicketResponseDto[]> {
+  async findAvailableByEventId(@Param('eventId') eventId: string): Promise<{ data: TicketResponseDto[]; _links: any[] }> {
     return this.ticketService.findAvailableByEventId(eventId);
   }
 
@@ -59,16 +59,11 @@ export class TicketController {
     return this.ticketService.reserveTicket(id, userId);
   }
 
-  @Post(':id/purchase/:userId')
-  async purchaseTicket(
+  @Put(':id/status')
+  async updateTicketStatus(
     @Param('id') id: string,
-    @Param('userId') userId: string,
+    @Body() updateData: { status?: string; userStatus?: string; userId?: string },
   ): Promise<TicketResponseDto> {
-    return this.ticketService.purchaseTicket(id, userId);
-  }
-
-  @Post(':id/cancel')
-  async cancelTicket(@Param('id') id: string): Promise<TicketResponseDto> {
-    return this.ticketService.cancelTicket(id);
+    return this.ticketService.updateTicketStatus(id, updateData);
   }
 }
